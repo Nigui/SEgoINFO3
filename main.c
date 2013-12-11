@@ -14,7 +14,6 @@
 int main(int argc, char** argv) {
 
     printf("Hello world\n!");
-    printf("it work    \n");
     return (EXIT_SUCCESS);
 }
 
