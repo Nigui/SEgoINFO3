@@ -16,6 +16,10 @@ int main(int argc, char** argv) {
     printf("Hello world\n!");
     printf("it work\n");
     printf("successfully\n");
+    int i;
+    for(i=0;i<10;i++){
+        printf("%d\n",i);
+    }
     return (EXIT_SUCCESS);
 }
 
