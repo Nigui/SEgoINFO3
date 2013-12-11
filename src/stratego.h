@@ -1,7 +1,7 @@
 #ifndef _STRATEGO_H
 	#define _STRATEGO_H
 
-/////////// Strutures à utiliser
+/////////// Strutures ï¿½ utiliser
 
 // Etat d'une case du jeu
 typedef enum
@@ -24,7 +24,7 @@ typedef enum
 	EPmajor,
 	EPcolonel,
 	EPgeneral,
-	EPmarshal
+	EPmarshal,
 	EPflag,
 	EPnone,
 } EPiece;
@@ -36,36 +36,36 @@ typedef struct
 } SBox;
 
 
-// Structure de représentation du jeu avec son plateau
+// Structure de reprï¿½sentation du jeu avec son plateau
 typedef struct
 {
 	SBox board[10][10];	// Tableau du jeu de 10 cases par 10. dim1=ligne dim2=colonne
-	unsigned int redOut[11];	// Tableau de comptage des pièces rouges éliminées (indexées par la valeur de EPiece : EPbomb=0, ..., EPmarshal=10
-	unsigned int blueOut[11];	// Tableau de comptage des pièces bleues éliminées (indexées par la valeur de EPiece : EPbomb=0, ..., EPmarshal=11
+	unsigned int redOut[11];	// Tableau de comptage des piï¿½ces rouges ï¿½liminï¿½es (indexï¿½es par la valeur de EPiece : EPbomb=0, ..., EPmarshal=10
+	unsigned int blueOut[11];	// Tableau de comptage des piï¿½ces bleues ï¿½liminï¿½es (indexï¿½es par la valeur de EPiece : EPbomb=0, ..., EPmarshal=11
 } SGameState;
 
-// Structure de représentation d'un mouvement
+// Structure de reprï¿½sentation d'un mouvement
 typedef struct
 {
 	int line;
 	int col;
 } SPos;
 
-// Structure de représentation d'un mouvement
+// Structure de reprï¿½sentation d'un mouvement
 typedef struct
 {
 	SPos start;
 	SPos end;
 } SMove;
 
-/////////// Fonctions à utiliser
-// Les prototypes en commentaires sont à implémenter dans la librairie
+/////////// Fonctions ï¿½ utiliser
+// Les prototypes en commentaires sont ï¿½ implï¿½menter dans la librairie
 // Les types pointeur de fonction dans l'application
 
 /**
  * Initialiser la librairie
  * @param char name[50]
- *	nom associé à la librairie
+ *	nom associï¿½ ï¿½ la librairie
  */
 //void InitLibrary(char name[50]);
 typedef void (*pfInitLibrary)(char[50]);
@@ -99,31 +99,31 @@ typedef void (*pfEndGame)();
 typedef void (*pfEndMatch)();
 
 /**
- * Prise de décision de la part de l'IA
+ * Prise de dï¿½cision de la part de l'IA
  * @param const SGameState * const gameState
- *	l'état du jeu courant
+ *	l'ï¿½tat du jeu courant
  * @return SMove
- *	mouvement à effectuer par l'IA
+ *	mouvement ï¿½ effectuer par l'IA
  */
 //SMove NextMove(const SGameState * const gameState);
 typedef SMove (*pfNextMove)(const SGameState * const);
 
 /**
- * Indication du résultat d'une attaque (résultat envoyé à tous les joueurs)
+ * Indication du rï¿½sultat d'une attaque (rï¿½sultat envoyï¿½ ï¿½ tous les joueurs)
  * @param SPos armyPos
- *	position de l'élément de l'armée du joueur (attaquant ou attaquée)
+ *	position de l'ï¿½lï¿½ment de l'armï¿½e du joueur (attaquant ou attaquï¿½e)
  * @param EPiece armyPiece
- *	type de de l'élément de l'armée du joueur (attaquant ou attaquée)
+ *	type de de l'ï¿½lï¿½ment de l'armï¿½e du joueur (attaquant ou attaquï¿½e)
  * @param SPos enemyPos
- *	position de l'élément de l'ennemi (attaquant ou attaquée)
+ *	position de l'ï¿½lï¿½ment de l'ennemi (attaquant ou attaquï¿½e)
  * @param EPiece enemyPiece
- *	type de de l'élément de l'ennemi (attaquant ou attaquée)
+ *	type de de l'ï¿½lï¿½ment de l'ennemi (attaquant ou attaquï¿½e)
  */
 //void AttackResult(SPos armyPos,EPiece armyPiece,SPos enemyPos,EPiece enemyPiece);
 typedef void (*pfAttackResult)(SPos,EPiece,SPos,EPiece);
 
 /**
- * Indication d'une pénalitée pour règle non respectée -> coup précédent annulé
+ * Indication d'une pï¿½nalitï¿½e pour rï¿½gle non respectï¿½e -> coup prï¿½cï¿½dent annulï¿½
  */
 //void Penalty();
 typedef void (*pfPenalty)();

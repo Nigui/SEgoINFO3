@@ -48,20 +48,20 @@ void void Penalty()
 }
 
 //////////////////////////////////////////////////////////
-// Dans l'ex�cutable
+// Dans l'exécutable
 //
 
-void deroulement_du_jeu()	
-//int main()
+//void deroulement_du_jeu()	
+int main()
 {
-	//*****// � chaque utilisation de gameState, ne pas oublier de faire une copie de tous les �l�ments (pas fait ici)
+	//*****// é chaque utilisation de gameState, ne pas oublier de faire une copie de tous les éléments (pas fait ici)
 	SGameState gameState;
-	// init de l'�tat de d�part
+	// init de l'état de départ
 
-	//*****// � faire pour chaque joueur
+	//*****// à faire pour chaque joueur
 	
-	// Chargement de la librairie (chargement des pointeurs de fonctions des fonctions d�crites dans "backgammon.h")
-	// -> � remplacer par votre code de chargement
+	// Chargement de la librairie (chargement des pointeurs de fonctions des fonctions décrites dans "backgammon.h")
+	// -> é remplacer par votre code de chargement
 	pfInitLibrary j1InitLibrary=InitLibrary;
 	pfStartMatch j1StartMatch=StartMatch;
 	pfStartGame j1StartGame=StartGame;
@@ -79,7 +79,7 @@ void deroulement_du_jeu()
 	j1InitLibrary(name);
 	j1StartMatch();
 
-		//*****// � faire pour chaque jeu
+		//*****// é faire pour chaque jeu
 		EPiece boardInit[4][10];
 		j1StartGame(ECred,boardInit);
 		//...
@@ -87,7 +87,7 @@ void deroulement_du_jeu()
 			move=j1NextMove(&gameState);
 			// ...
 
-			//*****// si attaque, il faut signaler les donn�es � tous les joueurs
+			//*****// si attaque, il faut signaler les données à tous les joueurs
 			SPos p1,p2;
 			j1AttackResult(p1,EPmarshal,p2,EPbomb);
 			j2AttackResult(p2,EPbomb,p1,EPmarshal);
