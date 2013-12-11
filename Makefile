@@ -1,7 +1,6 @@
 # app name
 
-app = application.bin
-
+app = stratego.bin
 
 
 # extension to compile
