@@ -6,28 +6,30 @@
 // Etat d'une case du jeu
 typedef enum
 {
-	ECnone,
-	EClake,
-	ECred,
-	ECblue
+	EClake=-1,
+	ECnone=0,
+	ECred=1,
+	ECblue=2
 } EColor;
 
+//Liste de type de pion
 typedef enum
 {
-	EPbomb=0,
-	EPspy,
-	EPscout,
-	EPminer,
-	EPsergeant,
-	EPlieutenant,
-	EPcaptain,
-	EPmajor,
-	EPcolonel,
-	EPgeneral,
-	EPmarshal,
-	EPflag,
-	EPnone,
+	EPbomb=0,               // nb : 6
+	EPspy=1,                // nb : 1
+	EPscout=2,              // nb : 8
+	EPminer=3,              // nb : 5
+	EPsergeant=4,           // nb : 4
+	EPlieutenant=5,         // nb : 4
+	EPcaptain=6,            // nb : 4
+	EPmajor=7,              // nb : 3
+	EPcolonel=8,            // nb : 2
+	EPgeneral=9,            // nb : 1
+	EPmarshal=10,           // nb : 1
+	EPflag=20,              // nb : 1
+	EPnone=-1,
 } EPiece;
+
 
 typedef struct
 {
@@ -44,28 +46,33 @@ typedef struct
 	unsigned int blueOut[11];	// Tableau de comptage des pi�ces bleues �limin�es (index�es par la valeur de EPiece : EPbomb=0, ..., EPmarshal=11
 } SGameState;
 
-// Structure de repr�sentation d'un mouvement
+// Structure de repr�sentation d'une position
 typedef struct
 {
 	int line;
 	int col;
 } SPos;
 
-// Structure de repr�sentation d'un mouvement
+// Structure de représentation d'un mouvement
 typedef struct
 {
 	SPos start;
 	SPos end;
 } SMove;
 
-/////////// Fonctions � utiliser
-// Les prototypes en commentaires sont � impl�menter dans la librairie
+/////////// Fonctions à utiliser
+// Les prototypes en commentaires sont à implémenter dans la librairie
 // Les types pointeur de fonction dans l'application
+
+void PrintLine();
+
+//Affiche le plateau dans la console
+void PrintBoard(const SGameState * const gameState);
 
 /**
  * Initialiser la librairie
  * @param char name[50]
- *	nom associ� � la librairie
+ *	nom associé à la librairie
  */
 //void InitLibrary(char name[50]);
 typedef void (*pfInitLibrary)(char[50]);
