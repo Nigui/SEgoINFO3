@@ -1,33 +1,35 @@
 #ifndef _STRATEGO_H
 	#define _STRATEGO_H
 
+//Command : gcc -Wall SEgoINFO3/src/stratego.* -o SEgoINFO3/bin/stratego -ldl -lm
+
 /////////// Strutures � utiliser
 
 // Etat d'une case du jeu
 typedef enum
 {
-	EClake=-1,
-	ECnone=0,
-	ECred=1,
-	ECblue=2
+	ECnone,                 // val : 0
+	EClake,                 // val : 1
+	ECred,                  // val : 2
+	ECblue                  // val : 3
 } EColor;
 
 //Liste de type de pion
 typedef enum
 {
-	EPbomb=0,               // nb : 6
-	EPspy=1,                // nb : 1
-	EPscout=2,              // nb : 8
-	EPminer=3,              // nb : 5
-	EPsergeant=4,           // nb : 4
-	EPlieutenant=5,         // nb : 4
-	EPcaptain=6,            // nb : 4
-	EPmajor=7,              // nb : 3
-	EPcolonel=8,            // nb : 2
-	EPgeneral=9,            // nb : 1
-	EPmarshal=10,           // nb : 1
-	EPflag=20,              // nb : 1
-	EPnone=-1,
+	EPbomb=0,               // nb : 6 -- val : 0
+	EPspy,                  // nb : 1 -- val : 1
+	EPscout,                // nb : 8 -- val : 2
+	EPminer,                // nb : 5 -- val : 3
+	EPsergeant,             // nb : 4 -- val : 4
+	EPlieutenant,           // nb : 4 -- val : 5
+	EPcaptain,              // nb : 4 -- val : 6
+	EPmajor,                // nb : 3 -- val : 7
+	EPcolonel,              // nb : 2 -- val : 8
+	EPgeneral,              // nb : 1 -- val : 9
+	EPmarshal,              // nb : 1 -- val : 10
+	EPflag,                 // nb : 1 -- val : 11
+	EPnone,                 // nb : ? -- val : 12
 } EPiece;
 
 
@@ -63,11 +65,6 @@ typedef struct
 /////////// Fonctions à utiliser
 // Les prototypes en commentaires sont à implémenter dans la librairie
 // Les types pointeur de fonction dans l'application
-
-void PrintLine();
-
-//Affiche le plateau dans la console
-void PrintBoard(const SGameState * const gameState);
 
 /**
  * Initialiser la librairie
@@ -134,5 +131,6 @@ typedef void (*pfAttackResult)(SPos,EPiece,SPos,EPiece);
  */
 //void Penalty();
 typedef void (*pfPenalty)();
+
 
 #endif
