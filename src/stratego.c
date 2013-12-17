@@ -30,6 +30,8 @@
         pfPenalty j2Penalty;
         
         int nbPlayers;
+        EColor j1Color;
+        EColor j2Color;
         
         //Fonctions
         //*************************************
@@ -38,12 +40,15 @@
         //Affiche le plateau dans la console
         void PrintBoard(const SGameState * const gameState);
         
-        void InitBlueBoard(SGameState *game,EPiece boardInit[4][10]);
-        void InitRedBoard(SGameState *game,EPiece boardInit[4][10]);
+        int InitBlueBoard(SGameState *game,EPiece boardInit[4][10]);
+        int InitRedBoard(SGameState *game,EPiece boardInit[4][10]);
         
         EColor GetRandomColor();
         
         int InitLibraries(char *argv[]);
+        
+        void GameStateCpy(SGameState *game,SGameState *cpy);
+        void ExecuteMove(SGameState *game,SMove *move);
         
 
 
@@ -84,26 +89,36 @@
             }
         }
 
-        void InitBlueBoard(SGameState *game,EPiece boardInit[4][10])
+        int InitBlueBoard(SGameState *game,EPiece boardInit[4][10])
         {
+            int listPiece[12] = {6,1,8,5,4,4,4,3,2,1,1,1};
             int i,j;
             for(i=0;i<4;i++){
                 for(j=0;j<10;j++){
-                    game->board[i][j].piece = boardInit[i][j];
+                    EPiece p = boardInit[i][j];
+                    if( listPiece[p] == 0 ){return 0;}
+                    else{ listPiece[p]--;}
+                    game->board[i][j].piece = p;
                     game->board[i][j].content = ECblue;
                 }
             }
+            return 1;
         }
         
-        void InitRedBoard(SGameState *game,EPiece boardInit[4][10])
+        int InitRedBoard(SGameState *game,EPiece boardInit[4][10])
         {
+            int listPiece[12] = {6,1,8,5,4,4,4,3,2,1,1,1};
             int i,j;
             for(i=0;i<4;i++){
                 for(j=0;j<10;j++){
+                    EPiece p = boardInit[i][j];
+                    if( listPiece[p] == 0 ){return 0;}
+                    else{ listPiece[p]--;}
                     game->board[9-i][j].piece = boardInit[i][j];
                     game->board[9-i][j].content = ECred;
                 }
             }
+            return 1;
         }
         
         EColor GetRandomColor()
@@ -146,6 +161,28 @@
             return 1;
         }
         
+        void GameStateCpy(SGameState *game,SGameState *cpy)
+        {
+            int i,j;
+            for(i=0;i<11;i++){
+                cpy->blueOut[i] = game->blueOut[i];
+                cpy->redOut[i] = game->redOut[i];
+            }
+            
+            for(i=0;i<10;i++){
+                for(j=0;j<10;j++){
+                    cpy->board[i][j].content = game->board[i][j].content;
+                    cpy->board[i][j].piece = game->board[i][j].piece;
+                }
+            }
+            
+        }
+        
+        void ExecuteMove(SGameState *game,SMove *move)
+        {
+            
+        }
+        
         //void deroulement_du_jeu()	
         int main(int argc, char *argv[] )
         {
@@ -163,7 +200,6 @@
                     }
                 }
 
-                //*****// à chaque utilisation de gameState, ne pas oublier de faire une copie de tous les éléments (pas fait ici)
                 SGameState *gameState = (SGameState*) malloc(sizeof(SGameState));
                 // init de l'état de départ
                     //ajout des lacs
@@ -179,7 +215,7 @@
                     }
 
                 
-                if( !InitLibraries(argv) ){return(0);}
+                if( !InitLibraries(argv) ){ return(0); }
 
                 // Initialisation de la librairie
                 char j1Name[50];
@@ -187,43 +223,76 @@
                 j1InitLibrary(j1Name);
                 j2InitLibrary(j2Name);
                 
-                
+            
                 j1StartMatch();
                 j2StartMatch();
                 
-                EPiece j1BoardInit[4][10];
-                EPiece j2BoardInit[4][10];
-                // Tirage au sort couleur 
-                        EColor color = GetRandomColor();
+                int nbMatch = 3;
                 
-                j1StartGame(color,j1BoardInit);                 
-                j2StartGame(abs(color-1),j2BoardInit);         //couleur opposée à celle choisie
-                //TODO check bonne initialisation
+               while( nbMatch>0 ){
                 
-                //Initialisation des pions sur le plateau
-                InitBlueBoard(gameState,j1BoardInit);
-                InitRedBoard(gameState,j2BoardInit);
-                
-                PrintBoard(gameState);
-                
+                    EPiece j1BoardInit[4][10];
+                    EPiece j2BoardInit[4][10];
+                    // Tirage au sort couleur 
+                            EColor color = GetRandomColor();
+                    j1Color = color;
+                    j2Color = abs(color-1)
+                    j1StartGame(j1Color,j1BoardInit);          
+                    j2StartGame(j2Color,j2BoardInit);    //couleur opposée à celle choisie
 
-                        //*****// à faire pour chaque jeu
-                        //EPiece boardInit[4][10];
-                        //j1StartGame(ECred,boardInit);
-                        //...
-                                //*****// pour chaque joueur, tant que ce n'est pas fini ; ne pas oublier de dupliquer gameState
-                                //move=j1NextMove(&gameState);
-                                // ...
 
-                                //*****// si attaque, il faut signaler les données à tous les joueurs
-                                //SPos p1,p2;
-                                //j1AttackResult(p1,EPmarshal,p2,EPbomb);
-        //			j2AttackResult(p2,EPbomb,p1,EPmarshal);
-                                // ...
+                    //Initialisation des pions sur le plateau
+                    if( !InitBlueBoard(gameState,j1BoardInit) ){printf("mauvaise initialisation de l'IA 1\n");return 0;}           
+                    if( !InitRedBoard(gameState,j2BoardInit) ){printf("mauvaise initialisation de l'IA 2\n");return 0;}
 
-        //		j1EndGame();
+                    PrintBoard(gameState);
+                    
+                    //Le premier joueur est le rouge
+                    EColor player = ECred;
+                            
+                    while( !Finished(gameState) ){
+                        
+                        SMove move;
+                        //Duplication du plateau
+                        SGameState *gameStateCpy = (SGameState*) malloc(sizeof(SGameState));
+                        GameStateCpy(gameState,gameStateCpy);
+                        
+                        if( player == j1Color ){ move = j1NextMove(gameStateCpy); }
+                        else{ move = j2NextMove(gameStateCpy); }
+                        
+                        int correctMove = CorrectMove(gameState,move);
+                        if( !correctMove ){
+                            if( player == j1Color ){ j1Penalty(); }
+                            else{ j2Penalty(); }
+                        }
+                        else{
+                            if( correctMove == 1 ){
+                                //Attaque
+                                EPiece army = gameState->board[move->start.line][move->start.col].piece;
+                                EPiece enemy = gameState->board[move->end.line][move->end.col].piece;
+                                if( player == j1Color ){
+                                    j1AttackResult(move->start,army,move->end,enemy);
+                                    j2AttackResult(move->end,enemy,move->start,army);
+                                }
+                                else{
+                                    j1AttackResult(move->end,enemy,move->start,army);
+                                    j2AttackResult(move->start,army,move->end,enemy);
+                                }
+                            }
+                            ExecuteMove(gameState,move);
+                        }
 
-        //	j1EndMatch();
-
+                        free(gameStateCpy);
+                        
+                        if( player == ECred ){ player = ECblue; }
+                        else{ player = ECred; }
+                    }
+                    
+                    nbMatch--;
+                    j1EndGame();
+                    j2EndGame();
+                }
+        	j1EndMatch();
+                j2EndMatch();      
                 return(0);
         }
