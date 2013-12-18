@@ -6,6 +6,7 @@
 #include <time.h>
 #include <math.h>
 
+#include "Referee.h"
 
 //Definitions
 //*********************************************
@@ -48,7 +49,7 @@
         int InitLibraries(char *argv[]);
         
         void GameStateCpy(SGameState *game,SGameState *cpy);
-        void ExecuteMove(SGameState *game,SMove *move);
+        void ExecuteMove(SGameState *game,SMove move,EColor color);
         
 
 
@@ -178,9 +179,40 @@
             
         }
         
-        void ExecuteMove(SGameState *game,SMove *move)
+        void ExecuteMove(SGameState *game,SMove move,EColor color)
         {
-            
+            printf("ExecuteMove %d\n",color);
+            SBox start = game->board[move.start.line][move.start.col];
+            SBox end = game->board[move.end.line][move.end.col];
+            if( end.content == 0 ){
+                game->board[move.end.line][move.end.col].content = color;
+                game->board[move.end.line][move.end.col].piece = start.piece;
+            }
+            else{
+                if( start.piece > end.piece ){
+                    //l'ennemi a perdu on l'ajoute au tableau des pièces sorties
+                    if( color == ECred ){ game->blueOut[end.piece]++; }
+                    else{ game->redOut[end.piece]++; }
+                    
+                    //l'attaquant a battu l'ennemi
+                    game->board[move.end.line][move.end.col].content = color;
+                    game->board[move.end.line][move.end.col].piece = start.piece;
+                }
+                else if( start.piece < end.piece ){
+                    if( color == ECred ){ game->redOut[end.piece]++; }
+                    else{ game->blueOut[end.piece]++; }
+                }
+                else{
+                    //Les deux pièces sont éliminées
+                    game->redOut[end.piece]++;
+                    game->blueOut[end.piece]++;
+                    
+                    game->board[move.end.line][move.end.col].content = ECnone;
+                    game->board[move.end.line][move.end.col].piece = EPnone;
+                }
+            }
+            game->board[move.start.line][move.start.col].content = ECnone;
+            game->board[move.start.line][move.start.col].piece = EPnone;
         }
         
         //void deroulement_du_jeu()	
@@ -236,7 +268,7 @@
                     // Tirage au sort couleur 
                             EColor color = GetRandomColor();
                     j1Color = color;
-                    j2Color = abs(color-1)
+                    j2Color = abs(color-1);
                     j1StartGame(j1Color,j1BoardInit);          
                     j2StartGame(j2Color,j2BoardInit);    //couleur opposée à celle choisie
 
@@ -253,6 +285,7 @@
                     while( !Finished(gameState) ){
                         
                         SMove move;
+                        
                         //Duplication du plateau
                         SGameState *gameStateCpy = (SGameState*) malloc(sizeof(SGameState));
                         GameStateCpy(gameState,gameStateCpy);
@@ -260,26 +293,26 @@
                         if( player == j1Color ){ move = j1NextMove(gameStateCpy); }
                         else{ move = j2NextMove(gameStateCpy); }
                         
-                        int correctMove = CorrectMove(gameState,move);
-                        if( !correctMove ){
+                        int moveType = CorrectMove(gameState,move);
+                        if( moveType == 0 ){
                             if( player == j1Color ){ j1Penalty(); }
                             else{ j2Penalty(); }
                         }
                         else{
-                            if( correctMove == 1 ){
+                            if( moveType == 1 ){
                                 //Attaque
-                                EPiece army = gameState->board[move->start.line][move->start.col].piece;
-                                EPiece enemy = gameState->board[move->end.line][move->end.col].piece;
+                                EPiece army = gameState->board[move.start.line][move.start.col].piece;
+                                EPiece enemy = gameState->board[move.end.line][move.end.col].piece;
                                 if( player == j1Color ){
-                                    j1AttackResult(move->start,army,move->end,enemy);
-                                    j2AttackResult(move->end,enemy,move->start,army);
+                                    j1AttackResult(move.start,army,move.end,enemy);
+                                    j2AttackResult(move.end,enemy,move.start,army);
                                 }
                                 else{
-                                    j1AttackResult(move->end,enemy,move->start,army);
-                                    j2AttackResult(move->start,army,move->end,enemy);
+                                    j1AttackResult(move.end,enemy,move.start,army);
+                                    j2AttackResult(move.start,army,move.end,enemy);
                                 }
                             }
-                            ExecuteMove(gameState,move);
+                            ExecuteMove(gameState,move,player);
                         }
 
                         free(gameStateCpy);
@@ -287,12 +320,16 @@
                         if( player == ECred ){ player = ECblue; }
                         else{ player = ECred; }
                     }
+                        
+                    PrintBoard(gameState);
                     
                     nbMatch--;
                     j1EndGame();
                     j2EndGame();
                 }
         	j1EndMatch();
-                j2EndMatch();      
+                j2EndMatch();
+                
+                free(gameState);
                 return(0);
         }

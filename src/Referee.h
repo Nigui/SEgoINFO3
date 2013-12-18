@@ -7,6 +7,7 @@
 
 #ifndef REFEREE_H
 #define	REFEREE_H
+#include <stdio.h>
 #include "stratego.h"
 
 //Indique si la manche est terminée
