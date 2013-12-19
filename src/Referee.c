@@ -2,12 +2,16 @@
 
 int Finished(const SGameState * const game)
 {
-    printf("Finished\n");
+    if( game ){
+        printf("Finished\n");
+    }
     return 0;
 }
 
 int CorrectMove(const SGameState * const game,SMove move)
 {
-    printf("CorrectMove\n");
+    if( game ){
+        printf("CorrectMove\n");
+    }
     return 1;
 }
