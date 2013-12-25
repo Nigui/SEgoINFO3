@@ -54,6 +54,8 @@
         void GameStateCpy(SGameState *game,SGameState *cpy);
         void ExecuteMove(SGameState *game,SMove move,EColor color);
         
+        void RevertGame(SGameState *game);
+        
 
 
         
@@ -62,7 +64,7 @@
         //Affiche une ligne dans la console (Utilisé pour l'affichage du jeu dans la console)
         void PrintLine(){
             int i;
-            for(i=0;i<43;i++){
+            for(i=0;i<63;i++){
                 printf("-");
             }
             printf("\n");
@@ -75,7 +77,7 @@
                 //affichage nombres colonnes
                 printf("  |");
                 for(i=0;i<10;i++){
-                    printf(" %d |",i);
+                    printf("  %d  |",i);
                 }
                 printf("\n");
                 PrintLine();
@@ -83,11 +85,17 @@
                     printf("%d |",i);
                     for(j=0;j<10;j++){
                         int content = gameState->board[i][j].content;
+                        int piece = gameState->board[i][j].piece;
                         char sign = 'B';
                         if( content == EClake ){sign = 'X';}
                         else if(content == ECnone ){sign = ' ';}
                         else if(content == ECred ){sign = 'R';}
-                        printf(" %c |",sign);
+                        
+                        if( piece == 12 && content == 1 ){ printf("  %c  |",sign); }
+                        else if( piece == 12 && content == 0){ printf("     |"); }
+                        else if( piece==10 ){ printf(" %c%d |",sign,piece); }
+                        else if( piece==11 ){ printf("  %cF |",sign); }
+                        else{ printf("  %c%d |",sign,piece); }
                     }
                     printf("\n");
                     PrintLine();
@@ -97,48 +105,41 @@
 
         int InitBlueBoard(SGameState *game,EPiece boardInit[4][10])
         {
-            if( game && boardInit ){
-                int listPiece[12] = {6,1,8,5,4,4,4,3,2,1,1,1};
-                int i,j;
-                for(i=0;i<4;i++){
-                    for(j=0;j<10;j++){
-                        EPiece p = boardInit[i][j];
-                        if( p<0 || p>12 ){return 0;}
-                        if( listPiece[p] == 0 ){return 0;}
-                        else{ listPiece[p]--;}
-                        game->board[i][j].piece = p;
-                        game->board[i][j].content = ECblue;
-                    }
+            int listPiece[12] = {6,1,8,5,4,4,4,3,2,1,1,1};
+            int i,j;
+            for(i=0;i<4;i++){
+                for(j=0;j<10;j++){
+                    EPiece p = boardInit[i][j];
+                    if( p<0 || p>12 ){printf("%d<0 || p>12\n",p);return 0;}
+                    if( listPiece[p] == 0 ){printf("listPiece[%d] == 0 \n",p);return 0;}
+                    else{ listPiece[p]--;}
+                    game->board[i][j].piece = p;
+                    game->board[i][j].content = ECblue;
                 }
-                return 1;
             }
-            return 0;
+            return 1;
         }
         
         int InitRedBoard(SGameState *game,EPiece boardInit[4][10])
         {
-            if( game && boardInit ){
-                int listPiece[12] = {6,1,8,5,4,4,4,3,2,1,1,1};
-                int i,j;
-                for(i=0;i<4;i++){
-                    for(j=0;j<10;j++){
-                        EPiece p = boardInit[i][j];
-                        if( p<0 || p>12 ){return 0;}
-                        if( listPiece[p] == 0 ){return 0;}
-                        else{ listPiece[p]--;}
-                        game->board[9-i][j].piece = boardInit[i][j];
-                        game->board[9-i][j].content = ECred;
-                    }
+            int listPiece[12] = {6,1,8,5,4,4,4,3,2,1,1,1};
+            int i,j;
+            for(i=0;i<4;i++){
+                for(j=0;j<10;j++){
+                    EPiece p = boardInit[i][j];
+                    if( p<0 || p>12 ){printf("%d<0 || p>12\n",p);return 0;}
+                    if( listPiece[p] == 0 ){printf("listPiece[%d] == 0 \n",p);return 0;}
+                    else{ listPiece[p]--;}
+                    game->board[9-i][j].piece = boardInit[i][j];
+                    game->board[9-i][j].content = ECred;
                 }
-                return 1;
             }
-            return 0;
+            return 1;
         }
         
         EColor GetRandomColor()
         {
-            srand(time(NULL));
-            EColor choice = (EColor) (rand()%2);
+            EColor choice = (EColor) (rand()%2)+2;
             return choice;
         }
         
@@ -160,7 +161,6 @@
                     if( (j1AttackResult=(pfAttackResult) dlsym(lib,"AttackResult"))==NULL){ printf("IA 1 : loading 'AttackResult' Failed\n");return(0); }
                     if( (j1Penalty=(pfPenalty) dlsym(lib,"Penalty"))==NULL){ printf("IA 1 : loading 'Penalty' Failed\n");return(0); }
                     printf("IA 1 : %s loaded\n",argv[2]);
-            
                 if( nbPlayers == 0 ){
                     if( argv[3] == 0 ){ printf("Bad command : Missing IA path\n");return(0); }
                     if( (lib=dlopen(argv[3],RTLD_LAZY))==NULL){ printf("IA 2 : loading Failed\n");return(0); }
@@ -257,6 +257,21 @@
             }
         }
         
+        void RevertGame(SGameState *game)
+        {
+            int i,j;
+            for(i=0;i<5;i++){
+                for(j=0;j<10;j++){
+                    int tmpC = game->board[i][j].content;
+                    int tmpP = game->board[i][j].piece;
+                    game->board[i][j].content = game->board[9-i][j].content;
+                    game->board[i][j].piece = game->board[9-i][j].piece;
+                    game->board[9-i][j].content = tmpC;
+                    game->board[9-i][j].piece = tmpP;
+                }
+            }
+        }
+        
         //void deroulement_du_jeu()	
         int main(int argc, char *argv[] )
         {
@@ -279,18 +294,29 @@
 
                 SGameState *gameState = (SGameState*) malloc(sizeof(SGameState));
                 // init de l'état de départ
+                    //Initialisation de toutes les cases à la valeur des pièces 12 (none)
+                    int i,j;
+                    for(i=0;i<10;i++){
+                        for(j=0;j<10;j++){
+                            gameState->board[i][j].content = ECnone;
+                            gameState->board[i][j].piece = EPnone;
+                        }
+                    }
                     //ajout des lacs
                     SBox lake;
                     lake.content = EClake;
                     lake.piece = EPnone;
-                    int i,j;
                     for(i=4;i<=5;i++){
                         for(j=2;j<=6;j+=4){
                             gameState->board[i][j] = lake;
                             gameState->board[i][j+1] = lake;
                         }
                     }
-
+                    PrintBoard(gameState);
+                    
+                //Srand pour obtenir des nombres aléatoires 
+                srand(time(NULL));
+                
                 //Initialisation des joueurs    
                 j1InitLibrary(j1Name);   
                 j2InitLibrary(j2Name);
@@ -300,27 +326,48 @@
                 
                 int nbMatch = 3;
                 
-               while( nbMatch>0 ){
+                while( nbMatch>0 ){
                 
                     EPiece j1BoardInit[4][10];
                     EPiece j2BoardInit[4][10];
+                    
+                    
                     // Tirage au sort couleur 
                             EColor color = GetRandomColor();
                     j1Color = color;
-                    j2Color = abs(color-1);
-                    j1StartGame(j1Color,j1BoardInit);          
-                    j2StartGame(j2Color,j2BoardInit);    //couleur opposée à celle choisie
-
+                    if( j1Color == ECblue ){ j2Color = ECred; }
+                    else{ j2Color = ECblue; }
+                    printf("J1 Color : %d\n",j1Color);
+                    printf("J2 Color : %d\n",j2Color);
+                    
+                    
+                    j1StartGame(j1Color,j1BoardInit);
+                    j2StartGame(j2Color,j2BoardInit);
+                    
+                    printf("New start match\n");
+                    j1StartMatch();
+                    j2StartMatch();
+                    
                     //Initialisation des pions sur le plateau
-                    if( !InitBlueBoard(gameState,j1BoardInit) ){printf("mauvaise initialisation des pions de l'IA 1\n");return 0;}           
-                    if( !InitRedBoard(gameState,j2BoardInit) ){printf("mauvaise initialisation des pions de l'IA 2\n");return 0;}
+                    if( j1Color == ECblue ){
+                        if( !InitBlueBoard(gameState,j1BoardInit) ){printf("mauvaise initialisation des pions du joueur (Bleu)1\n");return 0;}           
+                        if( !InitRedBoard(gameState,j2BoardInit) ){printf("mauvaise initialisation des pions du joueur 2 (Rouge)\n");return 0;}
+                    }
+                    else{
+                        if( !InitRedBoard(gameState,j1BoardInit) ){printf("mauvaise initialisation des pions du joueur 1 (Rouge)\n");return 0;}
+                        if( !InitBlueBoard(gameState,j2BoardInit) ){printf("mauvaise initialisation des pions du joueur 2 (Bleu)\n");return 0;}
+                    }
+                    
 
                     PrintBoard(gameState);
                     
                     //Le premier joueur est le rouge
                     EColor player = ECred;
                     
-                    EColor winner = 0
+                    EColor winner = 0;
+                    
+                    printf("*************START MATCH**************\n");
+                    
                     while( !winner ){
                         
                         SMove move;
@@ -329,8 +376,18 @@
                         SGameState *gameStateCpy = (SGameState*) malloc(sizeof(SGameState));
                         GameStateCpy(gameState,gameStateCpy);
                         
-                        if( player == j1Color ){ move = j1NextMove(gameStateCpy); }
-                        else{ move = j2NextMove(gameStateCpy); }
+                        //Inversement de l'état du jeu pour le joueur courant
+                        RevertGame(gameStateCpy);
+                        
+                        PrintBoard(gameStateCpy);
+                        
+                        printf("DEBUG--NextMove : [  ] \n");
+                        printf(" player : %d\n",player);
+                        printf(" j1Color : %d\n",j1Color);
+                        printf(" j2Color : %d\n",j2Color);
+                        if( player == j1Color ){ printf("GO J1\n");move = j1NextMove(gameStateCpy); }
+                        else{ printf("GO J2\n");move = j2NextMove(gameStateCpy); }
+                        printf("DEBUG--NextMove : [OK] \n");
                         
                         int moveType = CorrectMove(gameState,move);
                         if( moveType == 0 ){
@@ -360,9 +417,13 @@
                         else{ player = ECred; }
                         
                         winner = Finished(gameState);
+                        
+                        printf("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
+                        printf("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
+                        printf("\n");
+                        PrintBoard(gameState);
                     }
                         
-                    PrintBoard(gameState);
                     
                     nbMatch--;
                     j1EndGame();
