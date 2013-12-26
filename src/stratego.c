@@ -55,7 +55,7 @@
         void ExecuteMove(SGameState *game,SMove move,EColor color);
         
         void RevertGame(SGameState *game);
-        
+        void HideColor(SGameState *game,EColor color);
 
 
         
@@ -202,18 +202,16 @@
         
         void GameStateCpy(SGameState *game,SGameState *cpy)
         {
-            if( game && cpy ){
-                int i,j;
-                for(i=0;i<11;i++){
-                    cpy->blueOut[i] = game->blueOut[i];
-                    cpy->redOut[i] = game->redOut[i];
-                }
+            int i,j;
+            for(i=0;i<11;i++){
+                cpy->blueOut[i] = game->blueOut[i];
+                cpy->redOut[i] = game->redOut[i];
+            }
 
-                for(i=0;i<10;i++){
-                    for(j=0;j<10;j++){
-                        cpy->board[i][j].content = game->board[i][j].content;
-                        cpy->board[i][j].piece = game->board[i][j].piece;
-                    }
+            for(i=0;i<10;i++){
+                for(j=0;j<10;j++){
+                    cpy->board[i][j].content = game->board[i][j].content;
+                    cpy->board[i][j].piece = game->board[i][j].piece;
                 }
             }
             
@@ -272,6 +270,17 @@
             }
         }
         
+        void HideColor(SGameState *game,EColor color)
+        {
+            if( color == 2 || color == 3 ){
+                int i,j;
+                for(i=0;i<10;i++){
+                    for(j=0;j<10;j++){
+                        if( game->board[i][j].content == color ){ game->board[i][j].piece = EPnone; }
+                    }
+                }
+            }
+        }
         //void deroulement_du_jeu()	
         int main(int argc, char *argv[] )
         {
@@ -337,16 +346,9 @@
                     j1Color = color;
                     if( j1Color == ECblue ){ j2Color = ECred; }
                     else{ j2Color = ECblue; }
-                    printf("J1 Color : %d\n",j1Color);
-                    printf("J2 Color : %d\n",j2Color);
-                    
                     
                     j1StartGame(j1Color,j1BoardInit);
                     j2StartGame(j2Color,j2BoardInit);
-                    
-                    printf("New start match\n");
-                    j1StartMatch();
-                    j2StartMatch();
                     
                     //Initialisation des pions sur le plateau
                     if( j1Color == ECblue ){
@@ -366,30 +368,25 @@
                     
                     EColor winner = 0;
                     
-                    printf("*************START MATCH**************\n");
-                    
                     while( !winner ){
                         
                         SMove move;
+                        
+                        //Inversement de l'état du jeu pour le joueur courant
+                        RevertGame(gameState);
                         
                         //Duplication du plateau
                         SGameState *gameStateCpy = (SGameState*) malloc(sizeof(SGameState));
                         GameStateCpy(gameState,gameStateCpy);
                         
-                        //Inversement de l'état du jeu pour le joueur courant
-                        RevertGame(gameStateCpy);
+//                        On cache les pions du joueur ennemi
+//                        HideColor(gameStateCpy,abs((player+1)%2)+2);
                         
-                        PrintBoard(gameStateCpy);
-                        
-                        printf("DEBUG--NextMove : [  ] \n");
-                        printf(" player : %d\n",player);
-                        printf(" j1Color : %d\n",j1Color);
-                        printf(" j2Color : %d\n",j2Color);
-                        if( player == j1Color ){ printf("GO J1\n");move = j1NextMove(gameStateCpy); }
-                        else{ printf("GO J2\n");move = j2NextMove(gameStateCpy); }
-                        printf("DEBUG--NextMove : [OK] \n");
+                        if( player == j1Color ){ move = j1NextMove(gameStateCpy); }
+                        else{ move = j2NextMove(gameStateCpy); }
                         
                         int moveType = CorrectMove(gameState,move);
+                        
                         if( moveType == 0 ){
                             if( player == j1Color ){ j1Penalty(); }
                             else{ j2Penalty(); }
@@ -410,7 +407,7 @@
                             }
                             ExecuteMove(gameState,move,player);
                         }
-
+                        
                         free(gameStateCpy);
                         
                         if( player == ECred ){ player = ECblue; }
