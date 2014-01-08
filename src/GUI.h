@@ -31,5 +31,7 @@ SMove j2NextMove_GUI(const SGameState * const gameState);
 void j2AttackResult_GUI(SPos armyPos,EPiece armyPiece,SPos enemyPos,EPiece enemyPiece);
 void j2Penalty_GUI();
 
+void Menu(int *maxCp,char* pathIA1,char* pathIA2);
+
 #endif	/* GUI_H */
 

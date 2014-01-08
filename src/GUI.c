@@ -102,3 +102,9 @@ void j2Penalty_GUI()
     printf("GUI : j2 Penalty\n");
 }
 
+void Menu(int *maxCp,char* pathIA1,char* pathIA2)
+{
+    printf("Print Menu \n");
+    
+}
+

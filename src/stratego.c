@@ -13,6 +13,9 @@
 //*********************************************
         //Attributs
         //*************************************
+        char pathIA1[300];
+        char pathIA2[300];
+        
         pfInitLibrary j1InitLibrary;
         pfStartMatch j1StartMatch;
         pfStartGame j1StartGame;
@@ -36,6 +39,8 @@
         char j2Name[50];
         EColor j1Color;
         EColor j2Color;
+        int nbMaxCps = 0;
+        
         
         //Fonctions
         //*************************************
@@ -49,13 +54,17 @@
         
         EColor GetRandomColor();
         
-        int LoadLibraries(char *argv[]);
+        int LoadLibraries();
         
         void GameStateCpy(SGameState *game,SGameState *cpy);
         void ExecuteMove(SGameState *game,SMove move,EColor color);
         
         void RevertGame(SGameState *game);
         void HideColor(SGameState *game,EColor color);
+        
+        void CheckCommand();
+        SGameState* CreateBoard();
+        void SetPlayerColors();
 
 
         
@@ -143,15 +152,14 @@
             return choice;
         }
         
-        int LoadLibraries(char *argv[])
+        int LoadLibraries()
         {
             // Chargement de la librairie (chargement des pointeurs de fonctions des fonctions décrites dans "stratego.h")
             //Si il y a au moins 1 IA 
             if( nbPlayers < 2 ){
                 void *lib;
                 //Initialisation de la première IA
-                if( argv[2] == 0 ){ printf("Bad command : Missing IA path\n");return(0); }
-                if( (lib=dlopen(argv[2],RTLD_LAZY))==NULL){ printf("IA 1 : loading Failed\n");return(0); }
+                if( (lib=dlopen(pathIA1,RTLD_LAZY))==NULL){ printf("IA 1 : loading Failed\n");return(0); }
                     if( (j1InitLibrary=(pfInitLibrary) dlsym(lib,"InitLibrary"))==NULL){ printf("IA 1 : loading 'InitLibrary' Failed\n");return(0); }
                     if( (j1StartMatch=(pfStartMatch) dlsym(lib,"StartMatch"))==NULL){ printf("IA 1 : loading 'StartMatch' Failed\n");return(0); }
                     if( (j1StartGame=(pfStartGame) dlsym(lib,"StartGame"))==NULL){ printf("IA 1 : loading 'StartGame' Failed\n");return(0); }
@@ -160,10 +168,9 @@
                     if( (j1NextMove=(pfNextMove) dlsym(lib,"NextMove"))==NULL){ printf("IA 1 : loading 'NextMove' Failed\n");return(0); }
                     if( (j1AttackResult=(pfAttackResult) dlsym(lib,"AttackResult"))==NULL){ printf("IA 1 : loading 'AttackResult' Failed\n");return(0); }
                     if( (j1Penalty=(pfPenalty) dlsym(lib,"Penalty"))==NULL){ printf("IA 1 : loading 'Penalty' Failed\n");return(0); }
-                    printf("IA 1 : %s loaded\n",argv[2]);
+                    printf("IA 1 : %s loaded\n",pathIA1);
                 if( nbPlayers == 0 ){
-                    if( argv[3] == 0 ){ printf("Bad command : Missing IA path\n");return(0); }
-                    if( (lib=dlopen(argv[3],RTLD_LAZY))==NULL){ printf("IA 2 : loading Failed\n");return(0); }
+                    if( (lib=dlopen(pathIA2,RTLD_LAZY))==NULL){ printf("IA 2 : loading Failed\n");return(0); }
                     if( (j2InitLibrary=(pfInitLibrary) dlsym(lib,"InitLibrary"))==NULL){ printf("IA 2 : loading 'InitLibrary' Failed\n");return(0); }
                     if( (j2StartMatch=(pfStartMatch) dlsym(lib,"StartMatch"))==NULL){ printf("IA 2 : loading 'StartMatch' Failed\n");return(0); }
                     if( (j2StartGame=(pfStartGame) dlsym(lib,"StartGame"))==NULL){ printf("IA 2 : loading 'StartGame' Failed\n");return(0); }
@@ -172,7 +179,7 @@
                     if( (j2NextMove=(pfNextMove) dlsym(lib,"NextMove"))==NULL){ printf("IA 2 : loading 'NextMove' Failed\n");return(0); }
                     if( (j2AttackResult=(pfAttackResult) dlsym(lib,"AttackResult"))==NULL){ printf("IA 2 : loading 'AttackResult' Failed\n");return(0); }
                     if( (j2Penalty=(pfPenalty) dlsym(lib,"Penalty"))==NULL){ printf("IA 2 : loading 'Penalty' Failed\n");return(0); }
-                    printf("IA 2 : %s loaded\n",argv[2]);
+                    printf("IA 2 : %s loaded\n",pathIA2);
                     return 1;
                 }
             }
@@ -281,154 +288,192 @@
                 }
             }
         }
+        
+        void CheckCommand(int argc, char *argv[])
+        {   
+            if( argc == 1 ){ Menu(NULL,NULL,NULL); }
+            else if( (argv[1][0]<48 || argv[1][0]>57) && argc>=3){ 
+                nbPlayers = 0;
+                
+                strcpy( pathIA1, argv[1]);
+                strcpy( pathIA2, argv[2]);
+                
+                Menu(NULL,argv[1],argv[2]);
+            }
+            else{ 
+                //Recherche du nombre max de coups
+                int i;
+                for(i=0; argv[1][i] != '\0';i++){
+                    nbMaxCps *= 10;
+                    nbMaxCps += argv[1][i] - '0';
+                }
+                
+                if( argc == 2 ){
+                    // Player vs Player
+                    nbPlayers = 2;
+                    printf("Player vs Player\n");
+                }
+                else if( argc == 3 ){
+                    // Player vs IA
+                    nbPlayers = 1;
+                    
+                    strcpy( pathIA1, argv[2]);
+                    
+                    printf("Player vs IA\n");
+                }
+                else{
+                    //IA vs IA
+                    nbPlayers = 0;
+                    strcpy( pathIA1, argv[2]);
+                    strcpy( pathIA2, argv[3]);
+                }
+            }
+        }
+        
+        SGameState* CreateBoard()
+        {
+            SGameState *gameState = (SGameState*) malloc(sizeof(SGameState));
+            //Initialisation de toutes les cases à la valeur des pièces 12 (none)
+            int i,j;
+            for(i=0;i<10;i++){
+                for(j=0;j<10;j++){
+                    gameState->board[i][j].content = ECnone;
+                    gameState->board[i][j].piece = EPnone;
+                }
+            }
+            //ajout des lacs
+            SBox lake;
+            lake.content = EClake;
+            lake.piece = EPnone;
+            for(i=4;i<=5;i++){
+                for(j=2;j<=6;j+=4){
+                    gameState->board[i][j] = lake;
+                    gameState->board[i][j+1] = lake;
+                }
+            }
+            return gameState;
+        }
+        
+        void SetPlayerColors()
+        {
+            j1Color = GetRandomColor();
+            if( j1Color == ECblue ){ j2Color = ECred; }
+            else{ j2Color = ECblue; }
+        }
+        
         //void deroulement_du_jeu()	
         int main(int argc, char *argv[] )
         {
-                //Check number of player
-                if( argc < 2 ){
-                    printf("Bad command : You have to inform number of player\n");
-                    return(0);
-                }
-                else if( argc >= 2 ){
-                    nbPlayers = *argv[1];
-                    nbPlayers -= 48;                    //check int value of argv
-                    if( nbPlayers > 2 || nbPlayers < 0 ){
-                        printf("Bad Argument : first argument is wrong\n");
-                        return(0);
-                    }
-                    else{
-                        if( !LoadLibraries(argv) ){ return(0); }
-                    }
-                }
-
-                SGameState *gameState = (SGameState*) malloc(sizeof(SGameState));
-                // init de l'état de départ
-                    //Initialisation de toutes les cases à la valeur des pièces 12 (none)
-                    int i,j;
-                    for(i=0;i<10;i++){
-                        for(j=0;j<10;j++){
-                            gameState->board[i][j].content = ECnone;
-                            gameState->board[i][j].piece = EPnone;
-                        }
-                    }
-                    //ajout des lacs
-                    SBox lake;
-                    lake.content = EClake;
-                    lake.piece = EPnone;
-                    for(i=4;i<=5;i++){
-                        for(j=2;j<=6;j+=4){
-                            gameState->board[i][j] = lake;
-                            gameState->board[i][j+1] = lake;
-                        }
-                    }
-                    PrintBoard(gameState);
-                    
-                //Srand pour obtenir des nombres aléatoires 
-                srand(time(NULL));
-                
-                //Initialisation des joueurs    
-                j1InitLibrary(j1Name);   
-                j2InitLibrary(j2Name);
+            CheckCommand(argc,argv);
             
-                j1StartMatch();
-                j2StartMatch();
+            //Il faut nbMaxCps pour chaques joueurs, donc on multiplie par 2
+            nbMaxCps *= 2;
+            
+            if( !LoadLibraries() ){ return(0); }
+            
+            SGameState* gameState = CreateBoard();
+
+            //Srand pour obtenir des nombres aléatoires 
+            srand(time(NULL));
+
+            //Initialisation des joueurs    
+            j1InitLibrary(j1Name);   
+            j2InitLibrary(j2Name);
+
+            j1StartMatch();
+            j2StartMatch();
+
+            int nbMatch = 3;
+
+            while( nbMatch>0 ){
+
+                EPiece j1BoardInit[4][10];
+                EPiece j2BoardInit[4][10];
+
+                SetPlayerColors();
                 
-                int nbMatch = 3;
-                
-                while( nbMatch>0 ){
-                
-                    EPiece j1BoardInit[4][10];
-                    EPiece j2BoardInit[4][10];
-                    
-                    
-                    // Tirage au sort couleur 
-                            EColor color = GetRandomColor();
-                    j1Color = color;
-                    if( j1Color == ECblue ){ j2Color = ECred; }
-                    else{ j2Color = ECblue; }
-                    
-                    j1StartGame(j1Color,j1BoardInit);
-                    j2StartGame(j2Color,j2BoardInit);
-                    
-                    //Initialisation des pions sur le plateau
-                    if( j1Color == ECblue ){
-                        if( !InitBlueBoard(gameState,j1BoardInit) ){printf("mauvaise initialisation des pions du joueur (Bleu)1\n");return 0;}           
-                        if( !InitRedBoard(gameState,j2BoardInit) ){printf("mauvaise initialisation des pions du joueur 2 (Rouge)\n");return 0;}
+                j1StartGame(j1Color,j1BoardInit);
+                j2StartGame(j2Color,j2BoardInit);
+
+                //Initialisation des pions sur le plateau
+                if( j1Color == ECblue ){
+                    if( !InitBlueBoard(gameState,j1BoardInit) ){printf("mauvaise initialisation des pions de %s (Bleu)1\n",j1Name);return 0;}           
+                    if( !InitRedBoard(gameState,j2BoardInit) ){printf("mauvaise initialisation des pions de %s (Rouge)\n",j2Name);return 0;}
+                }
+                else{
+                    if( !InitRedBoard(gameState,j1BoardInit) ){printf("mauvaise initialisation des pions de %s (Rouge)\n",j1Name);return 0;}
+                    if( !InitBlueBoard(gameState,j2BoardInit) ){printf("mauvaise initialisation des pions de %s (Bleu)\n",j2Name);return 0;}
+                }
+
+                //Le premier joueur est le rouge
+                EColor player = ECred;
+
+                EColor winner = 0;
+
+                while( !winner || nbMaxCps>0 ){
+
+                    SMove move;
+
+                    //Inversement de l'état du jeu pour le joueur courant
+                    RevertGame(gameState);
+
+                    //Duplication du plateau
+                    SGameState *gameStateCpy = (SGameState*) malloc(sizeof(SGameState));
+                    GameStateCpy(gameState,gameStateCpy);
+
+    //                        On cache les pions du joueur ennemi
+    //                        HideColor(gameStateCpy,abs((player+1)%2)+2);
+
+                    if( player == j1Color ){ move = j1NextMove(gameStateCpy); }
+                    else{ move = j2NextMove(gameStateCpy); }
+
+                    int moveType = CorrectMove(gameState,move);
+
+                    if( moveType == 0 ){
+                        if( player == j1Color ){ j1Penalty(); }
+                        else{ j2Penalty(); }
                     }
                     else{
-                        if( !InitRedBoard(gameState,j1BoardInit) ){printf("mauvaise initialisation des pions du joueur 1 (Rouge)\n");return 0;}
-                        if( !InitBlueBoard(gameState,j2BoardInit) ){printf("mauvaise initialisation des pions du joueur 2 (Bleu)\n");return 0;}
-                    }
-                    
-
-                    PrintBoard(gameState);
-                    
-                    //Le premier joueur est le rouge
-                    EColor player = ECred;
-                    
-                    EColor winner = 0;
-                    
-                    while( !winner ){
-                        
-                        SMove move;
-                        
-                        //Inversement de l'état du jeu pour le joueur courant
-                        RevertGame(gameState);
-                        
-                        //Duplication du plateau
-                        SGameState *gameStateCpy = (SGameState*) malloc(sizeof(SGameState));
-                        GameStateCpy(gameState,gameStateCpy);
-                        
-//                        On cache les pions du joueur ennemi
-//                        HideColor(gameStateCpy,abs((player+1)%2)+2);
-                        
-                        if( player == j1Color ){ move = j1NextMove(gameStateCpy); }
-                        else{ move = j2NextMove(gameStateCpy); }
-                        
-                        int moveType = CorrectMove(gameState,move);
-                        
-                        if( moveType == 0 ){
-                            if( player == j1Color ){ j1Penalty(); }
-                            else{ j2Penalty(); }
-                        }
-                        else{
-                            if( moveType == 1 ){
-                                //Attaque
-                                EPiece army = gameState->board[move.start.line][move.start.col].piece;
-                                EPiece enemy = gameState->board[move.end.line][move.end.col].piece;
-                                if( player == j1Color ){
-                                    j1AttackResult(move.start,army,move.end,enemy);
-                                    j2AttackResult(move.end,enemy,move.start,army);
-                                }
-                                else{
-                                    j1AttackResult(move.end,enemy,move.start,army);
-                                    j2AttackResult(move.start,army,move.end,enemy);
-                                }
+                        if( moveType == 1 ){
+                            //Attaque
+                            EPiece army = gameState->board[move.start.line][move.start.col].piece;
+                            EPiece enemy = gameState->board[move.end.line][move.end.col].piece;
+                            if( player == j1Color ){
+                                j1AttackResult(move.start,army,move.end,enemy);
+                                j2AttackResult(move.end,enemy,move.start,army);
                             }
-                            ExecuteMove(gameState,move,player);
+                            else{
+                                j1AttackResult(move.end,enemy,move.start,army);
+                                j2AttackResult(move.start,army,move.end,enemy);
+                            }
                         }
-                        
-                        free(gameStateCpy);
-                        
-                        if( player == ECred ){ player = ECblue; }
-                        else{ player = ECred; }
-                        
-                        winner = Finished(gameState);
-                        
-                        printf("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
-                        printf("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
-                        printf("\n");
-                        PrintBoard(gameState);
+                        ExecuteMove(gameState,move,player);
                     }
-                        
+
+                    free(gameStateCpy);
+
+                    if( player == ECred ){ player = ECblue; }
+                    else{ player = ECred; }
+
+                    winner = Finished(gameState);
                     
-                    nbMatch--;
-                    j1EndGame();
-                    j2EndGame();
+                    nbMaxCps--;
+
+                    printf("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
+                    printf("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
+                    printf("\n");
+                    PrintBoard(gameState);
                 }
-        	j1EndMatch();
-                j2EndMatch();
                 
-                free(gameState);
-                return(0);
+                if( nbMaxCps == 0){ printf("TIME'S UP!!\n");return (0); }
+
+                nbMatch--;
+                j1EndGame();
+                j2EndGame();
+            }
+            j1EndMatch();
+            j2EndMatch();
+
+            free(gameState);
+            return(0);
         }
