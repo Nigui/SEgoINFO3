@@ -20,5 +20,8 @@ int Finished(const SGameState * const);
  */ 
 int CorrectMove(const SGameState * const,SMove move);
 
+int InitBlueBoard(SGameState *game,EPiece boardInit[4][10]);
+int InitRedBoard(SGameState *game,EPiece boardInit[4][10]);
+
 #endif	/* REFEREE_H */
 

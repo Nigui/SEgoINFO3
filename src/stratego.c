@@ -40,6 +40,8 @@
         EColor j1Color;
         EColor j2Color;
         int nbMaxCps = 0;
+        int j1NbPenalty = 0;
+        int j2NbPenalty = 0;
         
         
         //Fonctions
@@ -48,9 +50,6 @@
         //Affiche le plateau dans la console
         void PrintBoard(const SGameState * const gameState);
         void PrintLine();
-        
-        int InitBlueBoard(SGameState *game,EPiece boardInit[4][10]);
-        int InitRedBoard(SGameState *game,EPiece boardInit[4][10]);
         
         EColor GetRandomColor();
         
@@ -112,40 +111,6 @@
             }
         }
 
-        int InitBlueBoard(SGameState *game,EPiece boardInit[4][10])
-        {
-            int listPiece[12] = {6,1,8,5,4,4,4,3,2,1,1,1};
-            int i,j;
-            for(i=0;i<4;i++){
-                for(j=0;j<10;j++){
-                    EPiece p = boardInit[i][j];
-                    if( p<0 || p>12 ){printf("%d<0 || p>12\n",p);return 0;}
-                    if( listPiece[p] == 0 ){printf("listPiece[%d] == 0 \n",p);return 0;}
-                    else{ listPiece[p]--;}
-                    game->board[i][j].piece = p;
-                    game->board[i][j].content = ECblue;
-                }
-            }
-            return 1;
-        }
-        
-        int InitRedBoard(SGameState *game,EPiece boardInit[4][10])
-        {
-            int listPiece[12] = {6,1,8,5,4,4,4,3,2,1,1,1};
-            int i,j;
-            for(i=0;i<4;i++){
-                for(j=0;j<10;j++){
-                    EPiece p = boardInit[i][j];
-                    if( p<0 || p>12 ){printf("%d<0 || p>12\n",p);return 0;}
-                    if( listPiece[p] == 0 ){printf("listPiece[%d] == 0 \n",p);return 0;}
-                    else{ listPiece[p]--;}
-                    game->board[9-i][j].piece = boardInit[i][j];
-                    game->board[9-i][j].content = ECred;
-                }
-            }
-            return 1;
-        }
-        
         EColor GetRandomColor()
         {
             EColor choice = (EColor) (rand()%2)+2;
@@ -226,8 +191,13 @@
         
         void ExecuteMove(SGameState *game,SMove move,EColor color)
         {
-            
             if( game && color>1 && color<=3 ){
+                //Si c'est le joueur rouge on inverse les indices du mouvement pour l'adapter au plateau
+                if( color == ECred ){
+                    move.start.line = 9 -  move.start.line;
+                    move.end.line = 9 - move.end.line;
+                }
+                
                 SBox start = game->board[move.start.line][move.start.col];
                 SBox end = game->board[move.end.line][move.end.col];
                 if( end.content == 0 ){
@@ -387,6 +357,9 @@
 
             while( nbMatch>0 ){
 
+                //On initialise le nombre de coups maximums
+                 int cptCps = nbMaxCps;
+                
                 EPiece j1BoardInit[4][10];
                 EPiece j2BoardInit[4][10];
 
@@ -409,33 +382,55 @@
                 EColor player = ECred;
 
                 EColor winner = 0;
-
-                while( !winner || nbMaxCps>0 ){
+                
+                PrintBoard(gameState);
+                printf("******************************************\n");
+                
+                
+                while( !winner && cptCps>0 ){
 
                     SMove move;
-
-                    //Inversement de l'état du jeu pour le joueur courant
-                    RevertGame(gameState);
-
+                    
                     //Duplication du plateau
                     SGameState *gameStateCpy = (SGameState*) malloc(sizeof(SGameState));
                     GameStateCpy(gameState,gameStateCpy);
+                    
+                    //Si c'est le tour du joueur rouge, on inverse son plateau 
+                    if( player == ECred ){
+                        RevertGame(gameStateCpy);
+                    }
 
-    //                        On cache les pions du joueur ennemi
-    //                        HideColor(gameStateCpy,abs((player+1)%2)+2);
-
+                    //On cache les pions du joueur ennemi
+                    HideColor(gameStateCpy,abs((player+1)%2)+2);
+                    
                     if( player == j1Color ){ move = j1NextMove(gameStateCpy); }
                     else{ move = j2NextMove(gameStateCpy); }
 
                     int moveType = CorrectMove(gameState,move);
 
+                    //Mouvement incorrecte
                     if( moveType == 0 ){
-                        if( player == j1Color ){ j1Penalty(); }
-                        else{ j2Penalty(); }
+                        if( player == j1Color ){
+                            j1NbPenalty++;
+                            j1Penalty();
+                            if( j1NbPenalty == 3 ){
+                                /* AFFICHER GAGNANT j2 puis commencer autre manche*/
+                                break;
+                            }
+                        }
+                        else{ 
+                            j2NbPenalty++;
+                            j2Penalty(); 
+                            if( j2NbPenalty == 3 ){
+                                /* AFFICHER GAGNANT j1 puis commencer autre manche*/
+                                break;
+                            }
+                        }
                     }
                     else{
+                        ExecuteMove(gameState,move,player);
+                        //Attaque
                         if( moveType == 1 ){
-                            //Attaque
                             EPiece army = gameState->board[move.start.line][move.start.col].piece;
                             EPiece enemy = gameState->board[move.end.line][move.end.col].piece;
                             if( player == j1Color ){
@@ -447,7 +442,6 @@
                                 j2AttackResult(move.start,army,move.end,enemy);
                             }
                         }
-                        ExecuteMove(gameState,move,player);
                     }
 
                     free(gameStateCpy);
@@ -457,17 +451,16 @@
 
                     winner = Finished(gameState);
                     
-                    nbMaxCps--;
-
-                    printf("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
-                    printf("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
-                    printf("\n");
+                    cptCps--;
+                    
                     PrintBoard(gameState);
+                    printf("******************************************\n");
                 }
                 
-                if( nbMaxCps == 0){ printf("TIME'S UP!!\n");return (0); }
+                if( cptCps == 0){ printf("TIME'S UP!!\n");return (0); }
 
                 nbMatch--;
+                
                 j1EndGame();
                 j2EndGame();
             }
