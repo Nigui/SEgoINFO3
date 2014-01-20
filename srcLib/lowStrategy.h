@@ -15,7 +15,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
-#include "../../SEgoINFO3/src/stratego.h"         //TODO à modifier
+#include "../src/stratego.h"         //TODO à modifier
 
 //Structure Coup + valeur
 typedef struct 

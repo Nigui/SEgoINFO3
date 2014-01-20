@@ -1,59 +1,68 @@
+#STRATEGO
+#Réalisation par Guillaume NICOLAS, Thomas LE GOUGAUD, Florian BONNIEC, Jonathan GAC
+#Voir le readme.txt pour information concernant le Makefile
+#-------------------------------------------------------------------------------------
+
 # app name
-app = Stratego.bin
+app = Stratego
 
 # extension to compile
-srcExt = c
+CC = gcc
 
-# directories
+# directories game
 srcDir = src
-objDir = obj
 binDir = bin
 
-# debug option (=1 for debugging ; =0 no include debug information)
-debug = 1
+#directories library
+srcLibDir = srcLib
+libDir = libs
 
 # compiler options
-CFlags = -Wall
+CFlags = -ldl -lSDLmain -lSDL -lSDL_ttf
+# object options
+OFlags = -fPIC
 # linker options
-LDFlags = -rdynamic
-# library names
-libs = lowStrategy.so
-# additionnal library directories
-libDir = libs/
+LDFlags = -shared -lm
 
-all:
-	@echo "Compilation des fichiers de jeu ..."
-	gcc -Wall src/*.c -o bin/stratego -ldl -lm -lSDLmain -lSDL -lSDL_ttf
-	@echo "OK"
-	@echo "Compilation des fichiers de librairie ..."
-	gcc -fPIC -c srcLib/*.c
-	@echo "OK"
-	@mv *.o libs/
-	@echo "Création de la librairie ..."
-	gcc -shared -o libs/lowStrategy.so libs/lowStrategy.o
-	@echo "OK"
+# library names
+lib1 = lowStrategy1.so
+lib2 = lowStrategy2.so
+
+all: installJeu
 
 installJeu:
 	@echo "Compilation des fichiers de jeu ..."
-	gcc -Wall src/*.c -o bin/stratego -ldl -lm -lSDLmain -lSDL -lSDL_ttf
+	$(CC) $(OFlags) -c $(srcDir)/*.c
+	@mv *.o $(binDir)
 	@echo "OK"
+	@echo "Compilation des fichiers de librairie ..."
+	$(CC) $(OFlags) -c $(srcLibDir)/*.c
+	@mv *.o $(libDir)
+	@echo "OK"
+	@echo "Création de la librairie ..."
+	$(CC) $(LDFlags) -o $(libDir)/$(lib1) $(libDir)/*.o 
+	$(CC) $(LDFlags) -o $(libDir)/$(lib2) $(libDir)/*.o
+	@echo "OK"
+	@echo "Création du jeu ..."
+	$(CC) $(srcDir)/*.c -o $(binDir)/$(app) $(CFlags)
+	@echo "Jeu prêt"
 
 installLib:
 	@echo "Compilation des fichiers de librairie ..."
-	gcc -fPIC -c srcLib/*.c
+	$(CC) $(OFlags) -c $(srcLibDir)/*.c
+	@mv *.o $(libDir)
 	@echo "OK"
-	@mv *.o libs/
-	@echo "Création de la librairie ..."
-	gcc -shared -o libs/lowStrategy.so libs/lowStrategy.o
+	@echo "Création des librairies ..."
+	$(CC) $(LDFlags) -o $(libDir)/$(lib1) $(libDir)/*.o 
+	$(CC) $(LDFlags) -o $(libDir)/$(lib2) $(libDir)/*.o
 	@echo "OK"
 
 clean:
 	@echo "Suppression des fichiers de jeu compilé ..."
-	@$(RM) -r bin/	
-	@mkdir -p bin
-	touch bin/StrategoLog.txt
+	@$(RM) -r $(binDir)	
+	@mkdir -p $(binDir)
 	@echo "OK"
 	@echo "Suppression des fichiers compilé de la librairie ..."
-	@$(RM) -r libs/
-	@mkdir -p libs
+	@$(RM) -r $(libDir)
+	@mkdir -p $(libDir)
 	@echo "OK"
