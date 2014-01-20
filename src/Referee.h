@@ -8,6 +8,7 @@
 #ifndef REFEREE_H
 #define	REFEREE_H
 #include <stdio.h>
+#include <stdlib.h>
 #include "stratego.h"
 
 //Indique si la manche est terminée
@@ -18,7 +19,8 @@ int Finished(const SGameState * const);
  * -1 si mouvement correcte sans attaque
  * 0 si mouvement incorrecte
  */ 
-int CorrectMove(const SGameState * const,SMove move);
+int CorrectMove(const SGameState * const,SMove move,EColor player);
+int ValidScoutMove(const SGameState * const,int startL,int startC,int endL,int endC );
 
 int InitBlueBoard(SGameState *game,EPiece boardInit[4][10]);
 int InitRedBoard(SGameState *game,EPiece boardInit[4][10]);

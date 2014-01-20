@@ -8,6 +8,7 @@
 
 #include "Referee.h"
 #include "GUI.h"
+#include "OutWriter.h"
 
 //Definitions
 //*********************************************
@@ -43,13 +44,8 @@
         int j1NbPenalty = 0;
         int j2NbPenalty = 0;
         
-        
         //Fonctions
         //*************************************
-     
-        //Affiche le plateau dans la console
-        void PrintBoard(const SGameState * const gameState);
-        void PrintLine();
         
         EColor GetRandomColor();
         
@@ -64,52 +60,13 @@
         void CheckCommand();
         SGameState* CreateBoard();
         void SetPlayerColors();
+        
+        void InitGameState(SGameState *game);
 
 
         
 //Implementations
 //*********************************************
-        //Affiche une ligne dans la console (Utilisé pour l'affichage du jeu dans la console)
-        void PrintLine(){
-            int i;
-            for(i=0;i<63;i++){
-                printf("-");
-            }
-            printf("\n");
-        }
-
-        //Affiche l'état courant du jeu dans la console
-        void PrintBoard(const SGameState * const gameState){
-            if( gameState ) {
-                int i,j;
-                //affichage nombres colonnes
-                printf("  |");
-                for(i=0;i<10;i++){
-                    printf("  %d  |",i);
-                }
-                printf("\n");
-                PrintLine();
-                for(i=0;i<10;i++){
-                    printf("%d |",i);
-                    for(j=0;j<10;j++){
-                        int content = gameState->board[i][j].content;
-                        int piece = gameState->board[i][j].piece;
-                        char sign = 'B';
-                        if( content == EClake ){sign = 'X';}
-                        else if(content == ECnone ){sign = ' ';}
-                        else if(content == ECred ){sign = 'R';}
-                        
-                        if( piece == 12 && content == 1 ){ printf("  %c  |",sign); }
-                        else if( piece == 12 && content == 0){ printf("     |"); }
-                        else if( piece==10 ){ printf(" %c%d |",sign,piece); }
-                        else if( piece==11 ){ printf("  %cF |",sign); }
-                        else{ printf("  %c%d |",sign,piece); }
-                    }
-                    printf("\n");
-                    PrintLine();
-                }
-            }
-        }
 
         EColor GetRandomColor()
         {
@@ -124,27 +81,27 @@
             if( nbPlayers < 2 ){
                 void *lib;
                 //Initialisation de la première IA
-                if( (lib=dlopen(pathIA1,RTLD_LAZY))==NULL){ printf("IA 1 : loading Failed\n");return(0); }
-                    if( (j1InitLibrary=(pfInitLibrary) dlsym(lib,"InitLibrary"))==NULL){ printf("IA 1 : loading 'InitLibrary' Failed\n");return(0); }
-                    if( (j1StartMatch=(pfStartMatch) dlsym(lib,"StartMatch"))==NULL){ printf("IA 1 : loading 'StartMatch' Failed\n");return(0); }
-                    if( (j1StartGame=(pfStartGame) dlsym(lib,"StartGame"))==NULL){ printf("IA 1 : loading 'StartGame' Failed\n");return(0); }
-                    if( (j1EndGame=(pfEndGame) dlsym(lib,"EndGame"))==NULL){ printf("IA 1 : loading 'EndGame' Failed\n");return(0); }
-                    if( (j1EndMatch=(pfEndMatch) dlsym(lib,"EndMatch"))==NULL){ printf("IA 1 : loading 'EndMatch' Failed\n");return(0); }
-                    if( (j1NextMove=(pfNextMove) dlsym(lib,"NextMove"))==NULL){ printf("IA 1 : loading 'NextMove' Failed\n");return(0); }
-                    if( (j1AttackResult=(pfAttackResult) dlsym(lib,"AttackResult"))==NULL){ printf("IA 1 : loading 'AttackResult' Failed\n");return(0); }
-                    if( (j1Penalty=(pfPenalty) dlsym(lib,"Penalty"))==NULL){ printf("IA 1 : loading 'Penalty' Failed\n");return(0); }
-                    printf("IA 1 : %s loaded\n",pathIA1);
+                if( (lib=dlopen(pathIA1,RTLD_LAZY))==NULL){ PrintLibrariesInitialisation("IA 1 : loading Failed\n");return(0); }
+                    if( (j1InitLibrary=(pfInitLibrary) dlsym(lib,"InitLibrary"))==NULL){ PrintLibrariesInitialisation("IA 1 : loading 'InitLibrary' Failed\n");return(0); }
+                    if( (j1StartMatch=(pfStartMatch) dlsym(lib,"StartMatch"))==NULL){ PrintLibrariesInitialisation("IA 1 : loading 'StartMatch' Failed\n");return(0); }
+                    if( (j1StartGame=(pfStartGame) dlsym(lib,"StartGame"))==NULL){ PrintLibrariesInitialisation("IA 1 : loading 'StartGame' Failed\n");return(0); }
+                    if( (j1EndGame=(pfEndGame) dlsym(lib,"EndGame"))==NULL){ PrintLibrariesInitialisation("IA 1 : loading 'EndGame' Failed\n");return(0); }
+                    if( (j1EndMatch=(pfEndMatch) dlsym(lib,"EndMatch"))==NULL){ PrintLibrariesInitialisation("IA 1 : loading 'EndMatch' Failed\n");return(0); }
+                    if( (j1NextMove=(pfNextMove) dlsym(lib,"NextMove"))==NULL){ PrintLibrariesInitialisation("IA 1 : loading 'NextMove' Failed\n");return(0); }
+                    if( (j1AttackResult=(pfAttackResult) dlsym(lib,"AttackResult"))==NULL){ PrintLibrariesInitialisation("IA 1 : loading 'AttackResult' Failed\n");return(0); }
+                    if( (j1Penalty=(pfPenalty) dlsym(lib,"Penalty"))==NULL){ PrintLibrariesInitialisation("IA 1 : loading 'Penalty' Failed\n");return(0); }
+                    PrintLibrariesInitialisation("IA 1 : loaded\n");
                 if( nbPlayers == 0 ){
-                    if( (lib=dlopen(pathIA2,RTLD_LAZY))==NULL){ printf("IA 2 : loading Failed\n");return(0); }
-                    if( (j2InitLibrary=(pfInitLibrary) dlsym(lib,"InitLibrary"))==NULL){ printf("IA 2 : loading 'InitLibrary' Failed\n");return(0); }
-                    if( (j2StartMatch=(pfStartMatch) dlsym(lib,"StartMatch"))==NULL){ printf("IA 2 : loading 'StartMatch' Failed\n");return(0); }
-                    if( (j2StartGame=(pfStartGame) dlsym(lib,"StartGame"))==NULL){ printf("IA 2 : loading 'StartGame' Failed\n");return(0); }
-                    if( (j2EndGame=(pfEndGame) dlsym(lib,"EndGame"))==NULL){ printf("IA 2 : loading 'EndGame' Failed\n");return(0); }
-                    if( (j2EndMatch=(pfEndMatch) dlsym(lib,"EndMatch"))==NULL){ printf("IA 2 : loading 'EndMatch' Failed\n");return(0); }
-                    if( (j2NextMove=(pfNextMove) dlsym(lib,"NextMove"))==NULL){ printf("IA 2 : loading 'NextMove' Failed\n");return(0); }
-                    if( (j2AttackResult=(pfAttackResult) dlsym(lib,"AttackResult"))==NULL){ printf("IA 2 : loading 'AttackResult' Failed\n");return(0); }
-                    if( (j2Penalty=(pfPenalty) dlsym(lib,"Penalty"))==NULL){ printf("IA 2 : loading 'Penalty' Failed\n");return(0); }
-                    printf("IA 2 : %s loaded\n",pathIA2);
+                    if( (lib=dlopen(pathIA2,RTLD_LAZY))==NULL){ PrintLibrariesInitialisation("IA 2 : loading Failed\n");return(0); }
+                    if( (j2InitLibrary=(pfInitLibrary) dlsym(lib,"InitLibrary"))==NULL){ PrintLibrariesInitialisation("IA 2 : loading 'InitLibrary' Failed\n");return(0); }
+                    if( (j2StartMatch=(pfStartMatch) dlsym(lib,"StartMatch"))==NULL){ PrintLibrariesInitialisation("IA 2 : loading 'StartMatch' Failed\n");return(0); }
+                    if( (j2StartGame=(pfStartGame) dlsym(lib,"StartGame"))==NULL){ PrintLibrariesInitialisation("IA 2 : loading 'StartGame' Failed\n");return(0); }
+                    if( (j2EndGame=(pfEndGame) dlsym(lib,"EndGame"))==NULL){ PrintLibrariesInitialisation("IA 2 : loading 'EndGame' Failed\n");return(0); }
+                    if( (j2EndMatch=(pfEndMatch) dlsym(lib,"EndMatch"))==NULL){ PrintLibrariesInitialisation("IA 2 : loading 'EndMatch' Failed\n");return(0); }
+                    if( (j2NextMove=(pfNextMove) dlsym(lib,"NextMove"))==NULL){ PrintLibrariesInitialisation("IA 2 : loading 'NextMove' Failed\n");return(0); }
+                    if( (j2AttackResult=(pfAttackResult) dlsym(lib,"AttackResult"))==NULL){ PrintLibrariesInitialisation("IA 2 : loading 'AttackResult' Failed\n");return(0); }
+                    if( (j2Penalty=(pfPenalty) dlsym(lib,"Penalty"))==NULL){ PrintLibrariesInitialisation("IA 2 : loading 'Penalty' Failed\n");return(0); }
+                    PrintLibrariesInitialisation("IA 2 : loaded\n");
                     return 1;
                 }
             }
@@ -192,11 +149,6 @@
         void ExecuteMove(SGameState *game,SMove move,EColor color)
         {
             if( game && color>1 && color<=3 ){
-                //Si c'est le joueur rouge on inverse les indices du mouvement pour l'adapter au plateau
-                if( color == ECred ){
-                    move.start.line = 9 -  move.start.line;
-                    move.end.line = 9 - move.end.line;
-                }
                 
                 SBox start = game->board[move.start.line][move.start.col];
                 SBox end = game->board[move.end.line][move.end.col];
@@ -205,18 +157,22 @@
                     game->board[move.end.line][move.end.col].piece = start.piece;
                 }
                 else{
-                    if( start.piece > end.piece ){
-                        //l'ennemi a perdu on l'ajoute au tableau des pièces sorties
-                        if( color == ECred ){ game->blueOut[end.piece]++; }
-                        else{ game->redOut[end.piece]++; }
-
-                        //l'attaquant a battu l'ennemi
+                    if( end.piece == EPflag ){ 
                         game->board[move.end.line][move.end.col].content = color;
                         game->board[move.end.line][move.end.col].piece = start.piece;
                     }
-                    else if( start.piece < end.piece ){
-                        if( color == ECred ){ game->redOut[end.piece]++; }
-                        else{ game->blueOut[end.piece]++; }
+                    else if( (start.piece == EPspy && end.piece == EPmarshal ) || ( start.piece == EPminer && end.piece == EPbomb ) || (start.piece > end.piece && end.piece != EPbomb) ){
+                            //l'ennemi a perdu on l'ajoute au tableau des pièces sorties
+                            if( color == ECred ){ game->blueOut[end.piece]++; }
+                            else{ game->redOut[end.piece]++; }
+
+                            //l'attaquant a battu l'ennemi
+                            game->board[move.end.line][move.end.col].content = color;
+                            game->board[move.end.line][move.end.col].piece = start.piece;
+                    }
+                    else if( end.piece == EPbomb || start.piece < end.piece ){
+                        if( color == ECred ){ game->redOut[start.piece]++; }
+                        else{ game->blueOut[start.piece]++; }
                     }
                     else{
                         //Les deux pièces sont éliminées
@@ -261,7 +217,10 @@
         
         void CheckCommand(int argc, char *argv[])
         {   
-            if( argc == 1 ){ Menu(NULL,NULL,NULL); }
+            if( argc == 1 ){ 
+                nbPlayers = 2;
+                Menu(&nbPlayers,NULL,NULL); 
+            }
             else if( (argv[1][0]<48 || argv[1][0]>57) && argc>=3){ 
                 nbPlayers = 0;
                 
@@ -281,15 +240,12 @@
                 if( argc == 2 ){
                     // Player vs Player
                     nbPlayers = 2;
-                    printf("Player vs Player\n");
                 }
                 else if( argc == 3 ){
                     // Player vs IA
                     nbPlayers = 1;
                     
                     strcpy( pathIA1, argv[2]);
-                    
-                    printf("Player vs IA\n");
                 }
                 else{
                     //IA vs IA
@@ -324,6 +280,35 @@
             return gameState;
         }
         
+        void InitGameState(SGameState *game)
+        {
+            //Initialisation de toutes les cases à la valeur des pièces 12 (none) et sans couleur 
+            int i,j;
+            for(i=0;i<10;i++){
+                for(j=0;j<10;j++){
+                    game->board[i][j].content = ECnone;
+                    game->board[i][j].piece = EPnone;
+                    
+                    game->blueOut[i] = 0;
+                    game->redOut[i] = 0;
+                }
+            }
+            game->blueOut[10] = 0;
+            game->redOut[10] = 0;
+            
+             //ajout des lacs
+            SBox lake;
+            lake.content = EClake;
+            lake.piece = EPnone;
+            for(i=4;i<=5;i++){
+                for(j=2;j<=6;j+=4){
+                    game->board[i][j] = lake;
+                    game->board[i][j+1] = lake;
+                }
+            }
+            
+        }
+        
         void SetPlayerColors()
         {
             j1Color = GetRandomColor();
@@ -334,15 +319,24 @@
         //void deroulement_du_jeu()	
         int main(int argc, char *argv[] )
         {
+            
+            // if( !InitGUI() ){ return 0; }
+            
             CheckCommand(argc,argv);
+            
+            if( !InitLogFile() ){ printf("Fail init logFile\n"); }
+            
+            PrintHeaderMatch();
             
             //Il faut nbMaxCps pour chaques joueurs, donc on multiplie par 2
             nbMaxCps *= 2;
             
+            if( !PrintLibInitHeader() ){ printf("Fail print libHeader\n"); }
             if( !LoadLibraries() ){ return(0); }
+            PrintTLine();
             
             SGameState* gameState = CreateBoard();
-
+            
             //Srand pour obtenir des nombres aléatoires 
             srand(time(NULL));
 
@@ -350,16 +344,34 @@
             j1InitLibrary(j1Name);   
             j2InitLibrary(j2Name);
 
+            if( strlen(pathIA1) && !strlen(pathIA2) ){ PrintPhysicalPlayers(NULL,j2Name); }
+            else if( !strlen(pathIA1) && strlen(pathIA2) ){ PrintPhysicalPlayers(j1Name,NULL); }
+            else if( !strlen(pathIA1) && !strlen(pathIA2) ){ PrintPhysicalPlayers(j1Name,j2Name); }
+            else { PrintPhysicalPlayers(NULL,NULL); }
+            
+            PrintIAPlayers(pathIA1,pathIA2);
+            PrintMaxCps(nbMaxCps/2);
+            
             j1StartMatch();
             j2StartMatch();
 
             int nbMatch = 3;
+            int j1Win = 0;
+            int j2Win = 0;
 
-            while( nbMatch>0 ){
+            while( nbMatch>0 && j1Win<2 && j2Win<2){
 
+                PrintMatch(4-nbMatch);
+                
+                //   InitBoard
+                
                 //On initialise le nombre de coups maximums
                  int cptCps = nbMaxCps;
-                
+                 j1NbPenalty = 0;
+                 j2NbPenalty = 0;
+                 
+                 InitGameState(gameState);
+                 
                 EPiece j1BoardInit[4][10];
                 EPiece j2BoardInit[4][10];
 
@@ -368,14 +380,17 @@
                 j1StartGame(j1Color,j1BoardInit);
                 j2StartGame(j2Color,j2BoardInit);
 
+                if( j1Color == ECblue ){ PrintColors(j2Name, j1Name); }
+                else{ PrintColors(j1Name, j2Name); }
+                
                 //Initialisation des pions sur le plateau
                 if( j1Color == ECblue ){
-                    if( !InitBlueBoard(gameState,j1BoardInit) ){printf("mauvaise initialisation des pions de %s (Bleu)1\n",j1Name);return 0;}           
-                    if( !InitRedBoard(gameState,j2BoardInit) ){printf("mauvaise initialisation des pions de %s (Rouge)\n",j2Name);return 0;}
+                    if( !InitBlueBoard(gameState,j1BoardInit) ){PrintBoardInitError(ECblue);return 0;}           
+                    if( !InitRedBoard(gameState,j2BoardInit) ){PrintBoardInitError(ECred);return 0;}
                 }
                 else{
-                    if( !InitRedBoard(gameState,j1BoardInit) ){printf("mauvaise initialisation des pions de %s (Rouge)\n",j1Name);return 0;}
-                    if( !InitBlueBoard(gameState,j2BoardInit) ){printf("mauvaise initialisation des pions de %s (Bleu)\n",j2Name);return 0;}
+                    if( !InitRedBoard(gameState,j1BoardInit) ){PrintBoardInitError(ECred);return 0;}
+                    if( !InitBlueBoard(gameState,j2BoardInit) ){PrintBoardInitError(ECblue);return 0;}
                 }
 
                 //Le premier joueur est le rouge
@@ -383,9 +398,8 @@
 
                 EColor winner = 0;
                 
-                PrintBoard(gameState);
-                printf("******************************************\n");
-                
+                PrintLine();
+                PrintGameState(gameState);
                 
                 while( !winner && cptCps>0 ){
 
@@ -405,30 +419,40 @@
                     
                     if( player == j1Color ){ move = j1NextMove(gameStateCpy); }
                     else{ move = j2NextMove(gameStateCpy); }
+                    
+                    if( player == ECred ){
+                        move.start.line = 9-move.start.line;
+                        move.end.line = 9-move.end.line;
+                    }
+                    
+                    int moveType = CorrectMove(gameState,move,player);
 
-                    int moveType = CorrectMove(gameState,move);
-
+                    PrintMove(player,move);
+                    
                     //Mouvement incorrecte
                     if( moveType == 0 ){
                         if( player == j1Color ){
                             j1NbPenalty++;
                             j1Penalty();
+                            PrintInvalidMove(player,j1NbPenalty);
                             if( j1NbPenalty == 3 ){
-                                /* AFFICHER GAGNANT j2 puis commencer autre manche*/
+                                PrintPenalty(j1Name,j1Color);
+                                winner = abs((j1Color+1)%2)+2;
                                 break;
                             }
                         }
                         else{ 
                             j2NbPenalty++;
                             j2Penalty(); 
+                            PrintInvalidMove(player,j2NbPenalty);
                             if( j2NbPenalty == 3 ){
-                                /* AFFICHER GAGNANT j1 puis commencer autre manche*/
+                                PrintPenalty(j2Name,j2Color);
+                                winner = abs((j2Color+1)%2)+2;
                                 break;
                             }
                         }
                     }
                     else{
-                        ExecuteMove(gameState,move,player);
                         //Attaque
                         if( moveType == 1 ){
                             EPiece army = gameState->board[move.start.line][move.start.col].piece;
@@ -441,8 +465,13 @@
                                 j1AttackResult(move.end,enemy,move.start,army);
                                 j2AttackResult(move.start,army,move.end,enemy);
                             }
+                            
+                            PrintAttackResult(player,move.start,army,move.end,enemy);
                         }
+                        
+                        ExecuteMove(gameState,move,player);
                     }
+                    PrintGameState(gameState);
 
                     free(gameStateCpy);
 
@@ -450,20 +479,24 @@
                     else{ player = ECred; }
 
                     winner = Finished(gameState);
-                    
                     cptCps--;
-                    
-                    PrintBoard(gameState);
-                    printf("******************************************\n");
                 }
                 
-                if( cptCps == 0){ printf("TIME'S UP!!\n");return (0); }
-
+                if( cptCps == 0){ PrintMaxMoveReached(); }
+                else{ 
+                    if( j1Color == winner ){ PrintMatchWinner(j1Name, winner, 4-nbMatch);j1Win++; }
+                    else{ PrintMatchWinner(j2Name, winner, 4-nbMatch);j2Win++; }
+                }
                 nbMatch--;
                 
                 j1EndGame();
                 j2EndGame();
+                
+                printf("j1Win : %d\nj2Win : %d\n",j1Win,j2Win);
             }
+            if( j1Win >= 2 ){ PrintGameWinner(j1Name, j1Color); }
+            else{ PrintGameWinner(j2Name, j2Color); }
+            
             j1EndMatch();
             j2EndMatch();
 

@@ -11,6 +11,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "stratego.h"
+#include <SDL/SDL.h>
+#include <SDL/SDL_ttf.h>
 
 void j1InitPlayer_GUI(char name[50]);
 void j1StartMatch_GUI();
