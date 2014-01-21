@@ -134,17 +134,12 @@ int CorrectMove(const SGameState * const game,SMove move,EColor player)
     }
 
     //Vérification de la règle VA ET VIENT
-    struct MouvementDetail
-    {
-    	SMove move;
-    	EPiece piece;
-    	EColor color;
-    };
+    
 
     MouvementDetail listRepeatedBlueMouv[3];
     MouvementDetail listRepeatedRedMouv[3];
 
-    InitList(MouvementDetail *listRepeatedMouv)
+    void InitList(MouvementDetail *listRepeatedMouv)
     {
         int i;
         for (i = 0; i < 3; ++i)
