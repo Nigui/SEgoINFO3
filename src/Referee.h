@@ -29,6 +29,7 @@ int Finished(const SGameState * const);
 int CorrectMove(const SGameState * const game,SMove move,EColor player);
 int ValidScoutMove(const SGameState * const,int startL,int startC,int endL,int endC );
 
+void InitList(MouvementDetail *listRepeatedMouv);
 int CompareMoves(MouvementDetail *mvtD1, MouvementDetail *mvtD2);
 int TestMove(SGameState *currentGame, SMove testingMove);
 
