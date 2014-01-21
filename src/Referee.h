@@ -11,6 +11,13 @@
 #include <stdlib.h>
 #include "stratego.h"
 
+typedef struct
+{
+  SMove move;
+	EPiece piece;
+	EColor color;
+} MouvementDetail;
+
 //Indique si la manche est terminée
 int Finished(const SGameState * const);
 
@@ -21,6 +28,9 @@ int Finished(const SGameState * const);
  */ 
 int CorrectMove(const SGameState * const game,SMove move,EColor player);
 int ValidScoutMove(const SGameState * const,int startL,int startC,int endL,int endC );
+
+int CompareMoves(MouvementDetail *mvtD1, MouvementDetail *mvtD2);
+int TestMove(SGameState *currentGame, SMove testingMove);
 
 int InitBlueBoard(SGameState *game,EPiece boardInit[4][10]);
 int InitRedBoard(SGameState *game,EPiece boardInit[4][10]);
