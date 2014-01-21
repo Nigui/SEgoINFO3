@@ -18,37 +18,21 @@ srcLibDir = srcLib
 libDir = libs
 
 # compiler options
-CFlags = -ldl -lSDLmain -lSDL -lSDL_ttf
+CFlags = -ldl -lSDLmain -lSDL -lSDL_ttf -lSDL_image
 # object options
 OFlags = -fPIC
 # linker options
 LDFlags = -shared -lm
 
 # library names
-lib1 = lowStrategy1.so
-lib2 = lowStrategy2.so
+lib1 = regicide1.so
+lib2 = regicide2.so
 
-all: installJeu
-
-installJeu:
-	@echo "Compilation des fichiers de jeu ..."
-	$(CC) $(OFlags) -c $(srcDir)/*.c
-	@mv *.o $(binDir)
-	@echo "OK"
-	@echo "Compilation des fichiers de librairie ..."
-	$(CC) $(OFlags) -c $(srcLibDir)/*.c
-	@mv *.o $(libDir)
-	@echo "OK"
-	@echo "Création de la librairie ..."
-	$(CC) $(LDFlags) -o $(libDir)/$(lib1) $(libDir)/*.o 
-	$(CC) $(LDFlags) -o $(libDir)/$(lib2) $(libDir)/*.o
-	@echo "OK"
-	@echo "Création du jeu ..."
-	$(CC) $(srcDir)/*.c -o $(binDir)/$(app) $(CFlags)
-	@echo "Jeu prêt"
+all: clean installJeu installLib
 
 installLib:
-	@echo "Compilation des fichiers de librairie ..."
+	@echo ""
+	@echo "installLib"
 	$(CC) $(OFlags) -c $(srcLibDir)/*.c
 	@mv *.o $(libDir)
 	@echo "OK"
@@ -57,12 +41,20 @@ installLib:
 	$(CC) $(LDFlags) -o $(libDir)/$(lib2) $(libDir)/*.o
 	@echo "OK"
 
+installJeu:
+	@echo ""
+	@echo "installJeu"
+	$(CC) $(srcDir)/*.c -o $(binDir)/$(app) $(CFlags)
+	@echo "Jeu prêt"
+
 clean:
-	@echo "Suppression des fichiers de jeu compilé ..."
+	@echo ""
+	@echo "clean"
+	@echo "Suppression du jeu ..."
 	@$(RM) -r $(binDir)	
 	@mkdir -p $(binDir)
 	@echo "OK"
-	@echo "Suppression des fichiers compilé de la librairie ..."
+	@echo "Suppression de la librairie ..."
 	@$(RM) -r $(libDir)
 	@mkdir -p $(libDir)
 	@echo "OK"
