@@ -153,7 +153,7 @@ int CorrectMove(const SGameState * const game,SMove move,EColor player)
         }
     }
     
-    CompareMoves(MouvementDetail *mvtD1, MouvementDetail *mvtD2)
+    int CompareMoves(MouvementDetail *mvtD1, MouvementDetail *mvtD2)
     {
         if(mvtD1->move.start.line == mvtD2->move.start.line 
             && mvtD1->move.start.col == mvtD2->move.start.col 
@@ -171,8 +171,8 @@ int CorrectMove(const SGameState * const game,SMove move,EColor player)
         else return 0;
     }
 
-   TestMove(SGameState currentGame, SMove testingMove)
-    {
+   int TestMove(SGameState *currentGame, SMove testingMove)
+   {
         MouvementDetail mvtD;
         mvtD.color = color;
         mvtD.move = testingMove;
