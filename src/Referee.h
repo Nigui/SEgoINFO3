@@ -13,7 +13,7 @@
 
 typedef struct
 {
-  SMove move;
+  	SMove move;
 	EPiece piece;
 	EColor color;
 } MouvementDetail;
