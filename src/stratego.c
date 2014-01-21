@@ -44,6 +44,8 @@
         int j1NbPenalty = 0;
         int j2NbPenalty = 0;
         
+        const char DEFAULT_IA_PATH[] = "../bin/lowStrategy.so" ;
+        
         //Fonctions
         //*************************************
         
@@ -57,7 +59,7 @@
         void RevertGame(SGameState *game);
         void HideColor(SGameState *game,EColor color);
         
-        void CheckCommand();
+        int CheckCommand();
         SGameState* CreateBoard();
         void SetPlayerColors();
         
@@ -78,6 +80,7 @@
         {
             // Chargement de la librairie (chargement des pointeurs de fonctions des fonctions décrites dans "stratego.h")
             //Si il y a au moins 1 IA 
+            printf("nbPlayers : %d\n",nbPlayers);
             if( nbPlayers < 2 ){
                 void *lib;
                 //Initialisation de la première IA
@@ -215,21 +218,24 @@
             }
         }
         
-        void CheckCommand(int argc, char *argv[])
+        int CheckCommand(int argc, char *argv[])
         {   
+            //-- ./stratego 
             if( argc == 1 ){ 
                 nbPlayers = 2;
-                Menu(&nbPlayers,NULL,NULL); 
+                Menu(&nbPlayers); 
+                if( nbPlayers == 0 ){
+                    strcpy( pathIA1, DEFAULT_IA_PATH );
+                    strcpy( pathIA2, DEFAULT_IA_PATH );
+                }
+                else if( nbPlayers == 1 ){
+                     strcpy( pathIA1, DEFAULT_IA_PATH );
+                }
+                return 1;
             }
-            else if( (argv[1][0]<48 || argv[1][0]>57) && argc>=3){ 
-                nbPlayers = 0;
-                
-                strcpy( pathIA1, argv[1]);
-                strcpy( pathIA2, argv[2]);
-                
-                Menu(NULL,argv[1],argv[2]);
-            }
-            else{ 
+            //-- ./stratego nbCps nbIA [path1] [path2]
+            else if( argc>=3 && (argv[1][0]>=48 && argv[1][0]<=57)
+                             && (argv[2][0]>=48 && argv[2][0]<=57) ){ 
                 //Recherche du nombre max de coups
                 int i;
                 for(i=0; argv[1][i] != '\0';i++){
@@ -237,22 +243,40 @@
                     nbMaxCps += argv[1][i] - '0';
                 }
                 
-                if( argc == 2 ){
-                    // Player vs Player
-                    nbPlayers = 2;
+                int nbIA = 0;
+                //Recherche du nombre d'IA
+                for(i=0; argv[2][i] != '\0';i++){
+                    nbIA *= 10;
+                    nbIA += argv[2][i] - '0';
                 }
-                else if( argc == 3 ){
-                    // Player vs IA
+                
+                if( nbIA == 0 ){
+                    nbPlayers = 2;
+                    return 1;
+                }
+                else if( nbIA >= 1 && argc >= 4 ){
+                    //-- 1 IA
                     nbPlayers = 1;
+                    if( argv[3][0]<48 || argv[3][0]>57 ){ strcpy( pathIA1 , argv[3] ); }
+                    else{ printf(" Bad Command -- Missing IA1 Path\n");return 0; }
                     
-                    strcpy( pathIA1, argv[2]);
+                    //-- 2 IA
+                    if( nbIA == 2 ){
+                        nbPlayers = 0;
+                        if( argv[4][0]<48 || argv[4][0]>57 ){ strcpy( pathIA2 , argv[4] ); }
+                        else{ printf(" Bad Command -- Missing IA2 Path\n");return 0; }
+                    }
+                    
+                    return 1;
                 }
                 else{
-                    //IA vs IA
-                    nbPlayers = 0;
-                    strcpy( pathIA1, argv[2]);
-                    strcpy( pathIA2, argv[3]);
+                    printf(" Bad Command -- Missing IA Path\n");
+                    return 0;
                 }
+            }
+            else{ 
+                printf(" Bad Command \n");
+                return 0;
             }
         }
         
@@ -322,7 +346,7 @@
             
             // if( !InitGUI() ){ return 0; }
             
-            CheckCommand(argc,argv);
+            if( !CheckCommand(argc,argv) ){ return 0; }
             
             if( !InitLogFile() ){ printf("Fail init logFile\n"); }
             

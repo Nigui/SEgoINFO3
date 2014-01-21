@@ -88,7 +88,7 @@ void j2Penalty_GUI() {
     printf("GUI : j2 Penalty\n");
 }
 
-void Menu(int *maxCp, char* pathIA1, char* pathIA2) {
+void Menu(int *nbJoueur) {
     printf("Print Menu \n");
     SDL_Surface *screen, *menuPic = NULL, *humain = NULL, *ia = NULL, *play = NULL;
     SDL_Rect posMenuPic, posJoueur1, posJoueur2, posRect1, posRect2, posPlay;
@@ -97,7 +97,7 @@ void Menu(int *maxCp, char* pathIA1, char* pathIA2) {
     int typeJoueur1, typeJoueur2; //0 = Humain, 1 = IA
 
     /*
-     * Initialistation de la fenêtre
+     * Initialistation de la fenêre
      */
     if (SDL_Init(SDL_INIT_VIDEO) == -1 || TTF_Init() == -1) {
         printf("Can't init SDL:  %s\n", SDL_GetError());
@@ -115,7 +115,7 @@ void Menu(int *maxCp, char* pathIA1, char* pathIA2) {
     /*
      * Background
      */
-    menuPic = SDL_LoadBMP("backgroudMenuD.bmp");
+    menuPic = SDL_LoadBMP("ressources/backgroudMenuD.bmp");
     if (menuPic == NULL) {
         printf("Unable to load bitmap: %s\n", SDL_GetError());
     }
@@ -131,7 +131,7 @@ void Menu(int *maxCp, char* pathIA1, char* pathIA2) {
      */
 
     /* Chargement des polices */
-    police = TTF_OpenFont("DejaVuSans.ttf", 30);
+    police = TTF_OpenFont("ressources/DejaVuSans.ttf", 30);
 
     /* Écriture du texte dans la SDL_Surface texte en mode Blended (optimal) */
     humain = TTF_RenderText_Blended(police, "Humain", couleurBlanche);
@@ -156,7 +156,7 @@ void Menu(int *maxCp, char* pathIA1, char* pathIA2) {
      * Bouton Play
      */
     /* Chargement de la police */
-    police = TTF_OpenFont("DejaVuSans.ttf", 65);
+    police = TTF_OpenFont("ressources/DejaVuSans.ttf", 65);
     /* Écriture du texte dans la SDL_Surface texte en mode Blended (optimal) */
     play = TTF_RenderText_Blended(police, "Play", couleurBlanche);
 
@@ -164,7 +164,7 @@ void Menu(int *maxCp, char* pathIA1, char* pathIA2) {
     posPlay.y = 550;
     SDL_BlitSurface(play, NULL, screen, &posPlay); /* Blit du texte */
 
-    police = TTF_OpenFont("DejaVuSans.ttf", 30);
+    police = TTF_OpenFont("ressources/DejaVuSans.ttf", 30);
 
     SDL_Flip(screen);
 
@@ -232,11 +232,11 @@ void Menu(int *maxCp, char* pathIA1, char* pathIA2) {
                         if (event.button.x > posPlay.x && event.button.y > posPlay.y
                                 && event.button.y < (posPlay.y + posPlay.h) && event.button.x < (posPlay.x + posPlay.w)) {
                             if (typeJoueur1 == 0 && typeJoueur1 == 0) {
-                                //*nbJoueur = 2;
+                                *nbJoueur = 2;
                             } else if (typeJoueur1 == 1 && typeJoueur1 == 1) {
-                                //*nbJoueur = 0;
+                                *nbJoueur = 0;
                             } else {
-                                //*nbJoueur = 1;
+                                *nbJoueur = 1;
                             }
                             printf("Clic Play\n");
                             SDL_Flip(screen);

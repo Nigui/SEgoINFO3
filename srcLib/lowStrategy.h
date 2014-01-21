@@ -9,7 +9,7 @@
  */
 
 #ifndef LOWSTRATEGY_H
-#define	LOWSTRATEGY_H
+#define        LOWSTRATEGY_H
 
 #include <stdio.h>
 #include <string.h>
@@ -52,5 +52,4 @@ int ValidScoutMove(int startL,int startC,int endL,int endC );
 int EstimateValMove(SMove move);
 
 
-#endif	/* LOWSTRATEGY_H */
-
+#endif        /* LOWSTRATEGY_H */

@@ -19,7 +19,7 @@ int Finished(const SGameState * const);
  * -1 si mouvement correcte sans attaque
  * 0 si mouvement incorrecte
  */ 
-int CorrectMove(const SGameState * const,SMove move,EColor player);
+int CorrectMove(const SGameState * const game,SMove move,EColor player);
 int ValidScoutMove(const SGameState * const,int startL,int startC,int endL,int endC );
 
 int InitBlueBoard(SGameState *game,EPiece boardInit[4][10]);

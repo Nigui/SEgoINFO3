@@ -1,4 +1,6 @@
 #include "lowStrategy.h"
+#include "Setups.h"
+
 
 int color;
 int enemyColor;
@@ -46,7 +48,7 @@ void StartGame(const EColor aColor, EPiece boardInit[4][10]) {
         int M = 19;
         int numSetup = (int) N + (rand() % (int) (M - N + 1));
         printf("--Setup n°%d--\n",numSetup);
-        SetupPieces(numSetup, boardInit);
+        SetupPieces(numSetup,boardInit);
     }
 }
 

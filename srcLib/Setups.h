@@ -8,7 +8,7 @@
 #ifndef SETUPS_H
 #define	SETUPS_H
 
-#include "lowStrategy.h"
+#include "./lowStrategy.h"
 #include <math.h>
 
 void SetupPieces(int nb,EPiece boardInit[4][10]);

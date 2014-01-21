@@ -5,7 +5,7 @@
 
 int InitLogFile()
 {
-    strategoLogFile = fopen("../bin/StrategoLog.txt", "a+t");
+    strategoLogFile = fopen("./StrategoLog.txt", "a+t");
     if( strategoLogFile ){ return 1;}
     return 0;
 }
