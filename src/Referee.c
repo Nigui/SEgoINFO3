@@ -134,16 +134,56 @@ int CorrectMove(const SGameState * const game,SMove move,EColor player)
     }
 
     //Vérification de la règle VA ET VIENT
-    //TODO
-    /*MouvementDetail mvtD;
-    mvtD.color = color;
-    mvtD.move = testingMove;
-    mvtD.piece = currentGame->board[testingMove.start.line][testingMove.start.col].piece;
-    //Si le nombre de coup répétés est critique et que c'est la même pièce que la dernière déplacée et qu'il s'agit d'un mouvement déjà effectué
-    if( repeatedMouv == 3 && (mvtD.piece == listRepeatedMouv[2].piece) && (CompareMoves(&mvtD.move,&listRepeatedMouv[1].move)==1) ){
-        repeatedMouv = 0;
-        return 0;
-    }*/
+    struct MouvementDetail
+    {
+    	SMove move;
+    	EPiece piece;
+    	EColor color;
+    };
+
+    MouvementDetail listRepeatedBlueMouv[3];
+    MouvementDetail listRepeatedRedMouv[3];
+
+    InitList(MouvementDetail *listRepeatedMouv)
+    {
+        int i;
+        for (i = 0; i < 3; ++i)
+        {
+            listRepeatedMouv[i]=0;
+        }
+    }
+    
+    CompareMoves(MouvementDetail *mvtD1, MouvementDetail *mvtD2)
+    {
+        if(mvtD1->move.start.line == mvtD2->move.start.line 
+            && mvtD1->move.start.col == mvtD2->move.start.col 
+            && mvtD1->move.end.line == mvtD1->move.end.line 
+            && mvtD1->move.end.col == mvtD1->move.end.col)
+        {
+            if (mvtD1->piece == mvtD2->piece)
+            {
+                if(mvtD1->color == mvtD2->color)
+                {
+                    return 1;
+                }
+            }
+        }
+        else return 0;
+    }
+
+   TestMove(SGameState currentGame, SMove testingMove)
+    {
+        MouvementDetail mvtD;
+        mvtD.color = color;
+        mvtD.move = testingMove;
+        mvtD.piece = currentGame->board[testingMove.start.line][testingMove.start.col].piece;
+        // Si le nombre de coup répétés est critique et que c'est la même pièce que la dernière déplacée et qu'il s'agit d'un mouvement déjà effectué
+        if(repeatedMouv == 3 && (mvtD.piece == listRepeatedMouv[2].piece) && (CompareMoves(&mvtD.move, &listRepeatedMouv[1].move) == 1))
+        {
+            repeatedMouv = 0;
+            return 0;
+        }
+    }
 
     //Si l'on se déplace vers la gauche ou la droite
     if( move.start.line == move.end.line ){
